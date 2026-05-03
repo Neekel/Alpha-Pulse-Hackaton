@@ -1,5 +1,6 @@
 """Main entry point for AlphaPulse backend"""
 import asyncio
+from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -7,6 +8,7 @@ from loguru import logger
 import sys
 from supabase import create_client, Client
 from web3 import Web3
+from groq import Groq
 
 from config import settings
 from monitor import MantleMonitor
@@ -53,7 +55,6 @@ async def lifespan(app: FastAPI):
         monitor = MantleMonitor(settings.mantle_rpc_url, settings.poll_interval)
         
         # Initialize AI Multi-Agent System
-        from groq import Groq
         groq_client = Groq(api_key=settings.groq_api_key)
         orchestrator = OrchestratorAgent(groq_client)
         logger.info("AI Multi-Agent System initialized")
@@ -534,7 +535,6 @@ async def get_trader_details(address: str):
         trades = await copy_trading.get_trader_trades(address, limit=20)
         
         # Get AI analysis of strategy
-        from groq import Groq
         groq_client = Groq(api_key=settings.groq_api_key)
         strategy_analysis = await copy_trading.analyze_trader_strategy(address, groq_client)
         
