@@ -27,9 +27,9 @@ class WhaleAgent(BaseAgent):
     def __init__(self, groq_client: Groq):
         super().__init__(
             name="Whale Tracker",
-            role="Monitors large wallet movements and identifies smart money patterns"
+            role="Monitors large wallet movements and identifies smart money patterns",
+            groq_client=groq_client
         )
-        self.groq = groq_client
     
     async def analyze(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze whale activity"""
@@ -90,9 +90,9 @@ class DEXAgent(BaseAgent):
     def __init__(self, groq_client: Groq):
         super().__init__(
             name="DEX Analyzer",
-            role="Monitors DEX liquidity, volume, and trading patterns"
+            role="Monitors DEX liquidity, volume, and trading patterns",
+            groq_client=groq_client
         )
-        self.groq = groq_client
     
     async def analyze(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze DEX activity"""
@@ -152,9 +152,9 @@ class RiskAgent(BaseAgent):
     def __init__(self, groq_client: Groq):
         super().__init__(
             name="Risk Assessor",
-            role="Evaluates market risk and provides safety recommendations"
+            role="Evaluates market risk and provides safety recommendations",
+            groq_client=groq_client
         )
-        self.groq = groq_client
     
     async def analyze(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze risk factors"""
@@ -213,9 +213,9 @@ class SentimentAgent(BaseAgent):
     def __init__(self, groq_client: Groq):
         super().__init__(
             name="Sentiment Analyzer",
-            role="Gauges market sentiment and emotional indicators"
+            role="Gauges market sentiment and emotional indicators",
+            groq_client=groq_client
         )
-        self.groq = groq_client
     
     async def analyze(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze market sentiment"""
