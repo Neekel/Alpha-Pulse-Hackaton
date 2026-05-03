@@ -1,5 +1,6 @@
 """Configuration settings for AlphaPulse"""
 from pydantic_settings import BaseSettings
+from pydantic import Field, field_validator
 from typing import Optional
 
 
@@ -21,7 +22,7 @@ class Settings(BaseSettings):
     
     # API Settings
     api_host: str = "0.0.0.0"
-    api_port: int = 8000
+    api_port: int = Field(default=8000, validation_alias="PORT")
     
     # Monitoring Settings
     poll_interval: int = 10  # seconds
@@ -33,6 +34,13 @@ class Settings(BaseSettings):
     # DEX Addresses (Mantle Sepolia)
     merchant_moe_router: Optional[str] = None
     agni_finance_router: Optional[str] = None
+
+    @field_validator("api_port", mode="before")
+    @classmethod
+    def parse_api_port(cls, v):
+        if isinstance(v, str):
+            return int(v)
+        return v
     
     class Config:
         env_file = ".env"
