@@ -1,201 +1,125 @@
 @import "tailwindcss";
 
-@layer base {
-  * {
-    @apply border-[#1e2a47];
-  }
-  
-  body {
-    @apply bg-[#0a0e27] text-[#e0e6ed] antialiased;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  }
-
-  /* Professional number formatting */
-  .tabular-nums {
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* Remove emoji styling */
-  .no-emoji {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  }
-
-  /* Scrollbar styling */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  ::-webkit-scrollbar-track {
-    @apply bg-[#141b2d];
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-[#1e2a47] rounded-sm;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-[#2a3f5f];
-  }
+/* Base styles */
+* {
+  border-color: #1e2a47;
 }
 
-@layer components {
-  /* Professional card style */
-  .pro-card {
-    @apply bg-[#141b2d] border border-[#1e2a47] rounded-sm;
-  }
-
-  .pro-card-hover {
-    @apply pro-card hover:border-[#00d4ff]/30 transition-colors;
-  }
-
-  /* Status indicators */
-  .status-success {
-    @apply text-[#00ff88];
-  }
-
-  .status-danger {
-    @apply text-[#ff4757];
-  }
-
-  .status-warning {
-    @apply text-[#ffa502];
-  }
-
-  .status-info {
-    @apply text-[#00d4ff];
-  }
-
-  /* Professional button */
-  .pro-btn {
-    @apply px-4 py-2 bg-[#1e2a47] border border-[#2a3f5f] rounded-sm font-mono text-sm hover:bg-[#2a3f5f] transition-colors;
-  }
-
-  .pro-btn-primary {
-    @apply pro-btn bg-[#00d4ff] text-[#0a0e27] border-[#00d4ff] hover:bg-[#00b8e6];
-  }
-
-  /* Data table */
-  .data-table {
-    @apply w-full border-collapse;
-  }
-
-  .data-table th {
-    @apply text-left text-xs font-mono text-[#8892a6] uppercase tracking-wider py-3 px-4 border-b border-[#1e2a47];
-  }
-
-  .data-table td {
-    @apply py-3 px-4 border-b border-[#1e2a47]/50 font-mono text-sm;
-  }
-
-  .data-table tr:hover {
-    @apply bg-[#1e2a47]/30;
-  }
-
-  /* Metric display */
-  .metric-value {
-    @apply text-2xl font-mono tabular-nums font-bold;
-  }
-
-  .metric-label {
-    @apply text-xs text-[#8892a6] uppercase tracking-wide font-mono;
-  }
+body {
+  background-color: #0a0e27;
+  color: #e0e6ed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
-@layer utilities {
-  .text-gradient-cyan {
-    @apply bg-gradient-to-r from-[#00d4ff] to-[#00ff88] bg-clip-text text-transparent;
-  }
-
-  .border-gradient {
-    border-image: linear-gradient(to right, #00d4ff, #00ff88) 1;
-  }
+/* Professional card style */
+.pro-card {
+  background-color: #141b2d;
+  border: 1px solid #1e2a47;
+  border-radius: 0.125rem;
 }
 
-@theme {
-  /* Custom animations */
-  --animate-gradient: gradient 3s ease infinite;
-  --animate-float: float 3s ease-in-out infinite;
-  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
-  --animate-shimmer: shimmer 2s infinite;
+.pro-card-hover {
+  background-color: #141b2d;
+  border: 1px solid #1e2a47;
+  border-radius: 0.125rem;
+  transition: border-color 0.2s;
 }
 
-/* Custom animations */
-@keyframes gradient {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
+.pro-card-hover:hover {
+  border-color: rgba(0, 212, 255, 0.3);
 }
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
+/* Status indicators */
+.status-success {
+  color: #00ff88;
 }
 
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(168, 85, 247, 0.8);
-  }
+.status-danger {
+  color: #ff4757;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-  100% {
-    background-position: 1000px 0;
-  }
+.status-warning {
+  color: #ffa502;
 }
 
-/* Custom utility classes */
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient 3s ease infinite;
+.status-info {
+  color: #00d4ff;
 }
 
-.animate-float {
-  animation: float 3s ease-in-out infinite;
+/* Professional button */
+.pro-btn {
+  padding: 0.5rem 1rem;
+  background-color: #1e2a47;
+  border: 1px solid #2a3f5f;
+  border-radius: 0.125rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
 }
 
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
+.pro-btn:hover {
+  background-color: #2a3f5f;
 }
 
-.animate-shimmer {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  background-size: 1000px 100%;
-  animation: shimmer 2s infinite;
+.pro-btn-primary {
+  padding: 0.5rem 1rem;
+  background-color: #00d4ff;
+  color: #0a0e27;
+  border: 1px solid #00d4ff;
+  border-radius: 0.125rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
 }
 
-.text-glow {
-  text-shadow: 0 0 10px currentColor;
+.pro-btn-primary:hover {
+  background-color: #00b8e6;
 }
 
-.glow-purple {
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+/* Data table */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.glow-pink {
-  box-shadow: 0 0 20px rgba(236, 72, 153, 0.5);
+.data-table th {
+  text-align: left;
+  font-size: 0.75rem;
+  font-family: ui-monospace, monospace;
+  color: #8892a6;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #1e2a47;
 }
 
-.glow-blue {
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+.data-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(30, 42, 71, 0.5);
+  font-family: ui-monospace, monospace;
+  font-size: 0.875rem;
+}
+
+.data-table tr:hover {
+  background-color: rgba(30, 42, 71, 0.3);
+}
+
+/* Metric display */
+.metric-value {
+  font-size: 1.5rem;
+  font-family: ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  color: #8892a6;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: ui-monospace, monospace;
 }
 
 /* Scrollbar styling */
@@ -205,23 +129,14 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(17, 24, 39, 0.5);
-  border-radius: 4px;
+  background-color: #141b2d;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(168, 85, 247, 0.5);
-  border-radius: 4px;
+  background-color: #1e2a47;
+  border-radius: 0.125rem;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(168, 85, 247, 0.7);
+  background-color: #2a3f5f;
 }
-
-/* Global styles */
-body {
-  background-color: rgb(17, 24, 39);
-  color: white;
-}
-
-
