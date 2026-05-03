@@ -1,5 +1,117 @@
 @import "tailwindcss";
 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-[#0a0e27] text-[#e0e6ed] antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Professional number formatting */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Remove emoji styling */
+  .no-emoji {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-[#141b2d];
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-[#1e2a47] rounded-sm;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-[#2a3f5f];
+  }
+}
+
+@layer components {
+  /* Professional card style */
+  .pro-card {
+    @apply bg-[#141b2d] border border-[#1e2a47] rounded-sm;
+  }
+
+  .pro-card-hover {
+    @apply pro-card hover:border-[#00d4ff]/30 transition-colors;
+  }
+
+  /* Status indicators */
+  .status-success {
+    @apply text-[#00ff88];
+  }
+
+  .status-danger {
+    @apply text-[#ff4757];
+  }
+
+  .status-warning {
+    @apply text-[#ffa502];
+  }
+
+  .status-info {
+    @apply text-[#00d4ff];
+  }
+
+  /* Professional button */
+  .pro-btn {
+    @apply px-4 py-2 bg-[#1e2a47] border border-[#2a3f5f] rounded-sm font-mono text-sm hover:bg-[#2a3f5f] transition-colors;
+  }
+
+  .pro-btn-primary {
+    @apply pro-btn bg-[#00d4ff] text-[#0a0e27] border-[#00d4ff] hover:bg-[#00b8e6];
+  }
+
+  /* Data table */
+  .data-table {
+    @apply w-full border-collapse;
+  }
+
+  .data-table th {
+    @apply text-left text-xs font-mono text-[#8892a6] uppercase tracking-wider py-3 px-4 border-b border-[#1e2a47];
+  }
+
+  .data-table td {
+    @apply py-3 px-4 border-b border-[#1e2a47]/50 font-mono text-sm;
+  }
+
+  .data-table tr:hover {
+    @apply bg-[#1e2a47]/30;
+  }
+
+  /* Metric display */
+  .metric-value {
+    @apply text-2xl font-mono tabular-nums font-bold;
+  }
+
+  .metric-label {
+    @apply text-xs text-[#8892a6] uppercase tracking-wide font-mono;
+  }
+}
+
+@layer utilities {
+  .text-gradient-cyan {
+    @apply bg-gradient-to-r from-[#00d4ff] to-[#00ff88] bg-clip-text text-transparent;
+  }
+
+  .border-gradient {
+    border-image: linear-gradient(to right, #00d4ff, #00ff88) 1;
+  }
+}
+
 @theme {
   /* Custom animations */
   --animate-gradient: gradient 3s ease infinite;
