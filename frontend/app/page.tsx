@@ -8,7 +8,7 @@ import { AlphaSearch } from "@/components/AlphaSearch";
 import { GasTracker } from "@/components/GasTracker";
 import { LiveChart } from "@/components/LiveChart";
 import { ContractInfo } from "@/components/ContractInfo";
-import { RecentActivity } from "@/components/RecentActivity";
+import { AIPredictions } from "@/components/AIPredictions";
 import { NetworkStatus } from "@/components/NetworkStatus";
 
 export default function Home() {
@@ -213,7 +213,7 @@ export default function Home() {
           <div className="space-y-6">
             <AlphaSearch />
             <GasTracker />
-            <RecentActivity anomalies={anomalies.slice(0, 5)} />
+            <AIPredictions />
           </div>
         </div>
       </section>
