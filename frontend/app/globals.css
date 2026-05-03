@@ -2,7 +2,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-[#1e2a47];
   }
   
   body {
