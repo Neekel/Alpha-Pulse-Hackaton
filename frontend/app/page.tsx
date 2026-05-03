@@ -7,6 +7,9 @@ import { PredictionHistory } from "@/components/PredictionHistory";
 import { StatsPanel } from "@/components/StatsPanel";
 import { ContractInfo } from "@/components/ContractInfo";
 import { NetworkStatus } from "@/components/NetworkStatus";
+import { AIAgentDashboard } from "@/components/AIAgentDashboard";
+import { CopyTradingDashboard } from "@/components/CopyTradingDashboard";
+import { MantleStats } from "@/components/MantleStats";
 
 export default function Home() {
   const [stats, setStats] = useState<any>(null);
@@ -55,7 +58,7 @@ export default function Home() {
                   AlphaPulse
                 </h1>
                 <p className="text-xs text-[#8892a6] font-mono">
-                  Smart Money Intelligence • Mantle Network
+                  Smart Money Intelligence • Powered by Mantle
                 </p>
               </div>
             </div>
@@ -79,9 +82,24 @@ export default function Home() {
         {/* Stats Overview */}
         {stats && <StatsPanel stats={stats} />}
 
+        {/* Mantle Network Stats */}
+        <div className="mb-8">
+          <MantleStats />
+        </div>
+
         {/* Contract Info */}
         <div className="mb-8">
           <ContractInfo />
+        </div>
+
+        {/* AI Multi-Agent System */}
+        <div className="mb-8">
+          <AIAgentDashboard />
+        </div>
+
+        {/* Copy Trading Dashboard */}
+        <div className="mb-8">
+          <CopyTradingDashboard />
         </div>
 
         {/* Main Grid: AI Predictions (50%) + Live Alerts (50%) */}
@@ -104,7 +122,7 @@ export default function Home() {
       <footer className="border-t border-[#1e2a47] py-6 mt-16">
         <div className="container mx-auto px-6 text-center">
           <p className="text-[#8892a6] font-mono text-sm">
-            Built for Turing Test Hackathon 2026 • Mantle Network
+            Built for Turing Test Hackathon 2026 • Powered by Mantle Network
           </p>
           <p className="text-[#8892a6] font-mono text-xs mt-2">
             <a href="https://github.com" className="hover:text-[#00d4ff] transition-colors">GitHub</a>
@@ -112,6 +130,8 @@ export default function Home() {
             <a href="https://t.me/AlphaPulseBot" className="hover:text-[#00d4ff] transition-colors">Telegram</a>
             {" • "}
             <a href="https://mantlescan.xyz" className="hover:text-[#00d4ff] transition-colors">Explorer</a>
+            {" • "}
+            <a href="https://www.mantle.xyz" className="hover:text-[#00d4ff] transition-colors">Mantle</a>
           </p>
         </div>
       </footer>

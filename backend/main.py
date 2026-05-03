@@ -13,6 +13,8 @@ from monitor import MantleMonitor
 from detectors import AnomalyDetector
 from ai_explainer import AIExplainer
 from bot import AlphaPulseBot
+from ai_agents import OrchestratorAgent
+from copy_trading import CopyTradingSystem
 
 # Configure logging
 logger.remove()
@@ -25,12 +27,14 @@ detector: AnomalyDetector = None
 explainer: AIExplainer = None
 bot: AlphaPulseBot = None
 supabase: Client = None
+orchestrator: OrchestratorAgent = None
+copy_trading: CopyTradingSystem = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup and shutdown events"""
-    global monitor, detector, explainer, bot, supabase
+    global monitor, detector, explainer, bot, supabase, orchestrator, copy_trading
     
     logger.info("Starting AlphaPulse backend...")
     
@@ -47,6 +51,16 @@ async def lifespan(app: FastAPI):
         explainer = AIExplainer(settings.groq_api_key, settings.groq_model)
         bot = AlphaPulseBot(settings.telegram_bot_token, explainer, supabase)
         monitor = MantleMonitor(settings.mantle_rpc_url, settings.poll_interval)
+        
+        # Initialize AI Multi-Agent System
+        from groq import Groq
+        groq_client = Groq(api_key=settings.groq_api_key)
+        orchestrator = OrchestratorAgent(groq_client)
+        logger.info("AI Multi-Agent System initialized")
+        
+        # Initialize Copy Trading System
+        copy_trading = CopyTradingSystem(web3, supabase)
+        logger.info("Copy Trading System initialized")
         
         # Add transaction callback
         async def on_transaction(tx):
@@ -444,3 +458,140 @@ if __name__ == "__main__":
         reload=False,
         log_level="info"
     )
+
+
+@app.get("/api/ai-agents/status")
+async def get_ai_agents_status():
+    """Get status of all AI agents"""
+    try:
+        if not orchestrator:
+            raise HTTPException(status_code=503, detail="AI agents not initialized")
+        
+        return {
+            "status": "operational",
+            "agents": orchestrator.get_agent_status(),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error getting AI agents status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/ai-agents/analyze")
+async def run_ai_analysis():
+    """Run full multi-agent analysis"""
+    try:
+        if not orchestrator:
+            raise HTTPException(status_code=503, detail="AI agents not initialized")
+        
+        # Fetch recent data
+        response = supabase.table('anomalies') \
+            .select('*') \
+            .order('timestamp', desc=True) \
+            .limit(50) \
+            .execute()
+        
+        anomalies = response.data if response.data else []
+        
+        # Run multi-agent analysis
+        result = await orchestrator.run_analysis({'anomalies': anomalies})
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error running AI analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/copy-trading/top-traders")
+async def get_top_traders(limit: int = 10):
+    """Get top performing traders"""
+    try:
+        if not copy_trading:
+            raise HTTPException(status_code=503, detail="Copy trading system not initialized")
+        
+        traders = await copy_trading.get_top_traders(limit)
+        
+        return {
+            "traders": traders,
+            "count": len(traders),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting top traders: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/copy-trading/trader/{address}")
+async def get_trader_details(address: str):
+    """Get detailed information about a specific trader"""
+    try:
+        if not copy_trading:
+            raise HTTPException(status_code=503, detail="Copy trading system not initialized")
+        
+        # Get trader's recent trades
+        trades = await copy_trading.get_trader_trades(address, limit=20)
+        
+        # Get AI analysis of strategy
+        from groq import Groq
+        groq_client = Groq(api_key=settings.groq_api_key)
+        strategy_analysis = await copy_trading.analyze_trader_strategy(address, groq_client)
+        
+        return {
+            "address": address,
+            "trades": trades,
+            "strategy_analysis": strategy_analysis,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting trader details: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/copy-trading/trader/{address}/trades")
+async def get_trader_trades(address: str, limit: int = 20):
+    """Get recent trades for a specific trader"""
+    try:
+        if not copy_trading:
+            raise HTTPException(status_code=503, detail="Copy trading system not initialized")
+        
+        trades = await copy_trading.get_trader_trades(address, limit)
+        
+        return {
+            "address": address,
+            "trades": trades,
+            "count": len(trades),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting trader trades: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/mantle/stats")
+async def get_mantle_stats():
+    """Get Mantle Network statistics"""
+    from datetime import datetime
+    try:
+        block_number = monitor.get_block_number() if monitor else 0
+        gas_price = monitor.get_gas_price() if monitor else 0
+        gas_gwei = gas_price / 1e9
+        
+        # Mock TVL and other stats (in production, fetch from Mantle API)
+        return {
+            "network": "Mantle Mainnet",
+            "chain_id": 5000,
+            "block_number": block_number,
+            "gas_price_gwei": round(gas_gwei, 2),
+            "tvl": 1250000000,  # Mock: $1.25B TVL
+            "daily_transactions": 450000,  # Mock
+            "active_addresses_24h": 125000,  # Mock
+            "tps": 2500,  # Mock: 2500 TPS
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error getting Mantle stats: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
