@@ -357,6 +357,83 @@ async def get_ai_prediction():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/api/prediction-multi")
+async def get_multi_timeframe_predictions():
+    """Get predictions for multiple timeframes"""
+    from datetime import datetime
+    import random
+    
+    try:
+        # Mock data for now - in production, use real ML model
+        predictions = [
+            {
+                "timeframe": "1H",
+                "direction": "BULLISH",
+                "confidence": 78,
+                "priceTarget": "+3-5%",
+                "risk": "LOW",
+                "action": "BUY"
+            },
+            {
+                "timeframe": "6H",
+                "direction": "BULLISH",
+                "confidence": 72,
+                "priceTarget": "+8-12%",
+                "risk": "MEDIUM",
+                "action": "HOLD"
+            },
+            {
+                "timeframe": "24H",
+                "direction": "NEUTRAL",
+                "confidence": 65,
+                "priceTarget": "±5%",
+                "risk": "MEDIUM",
+                "action": "WAIT"
+            }
+        ]
+        
+        factors = [
+            {"name": "Whale Activity", "value": "High", "impact": 85, "trend": "up"},
+            {"name": "Gas Price", "value": "12.5 Gwei", "impact": 45, "trend": "neutral"},
+            {"name": "DEX Volume", "value": "+45%", "impact": 72, "trend": "up"},
+            {"name": "Smart Clusters", "value": "3 detected", "impact": 68, "trend": "up"},
+            {"name": "Liquidity", "value": "Stable", "impact": 55, "trend": "neutral"}
+        ]
+        
+        return {
+            "predictions": predictions,
+            "factors": factors,
+            "accuracy": {"1h": 78, "6h": 72, "24h": 68},
+            "lastUpdate": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error generating multi predictions: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/prediction-history")
+async def get_prediction_history():
+    """Get historical predictions with results"""
+    try:
+        response = supabase.table('predictions') \
+            .select('*') \
+            .order('created_at', desc=True) \
+            .limit(50) \
+            .execute()
+        
+        predictions = response.data if response.data else []
+        
+        return {
+            "predictions": predictions,
+            "total": len(predictions),
+            "verified": len([p for p in predictions if p.get('verified')]),
+            "correct": len([p for p in predictions if p.get('correct')])
+        }
+    except Exception as e:
+        logger.error(f"Error fetching prediction history: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
     
