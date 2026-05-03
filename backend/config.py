@@ -5,8 +5,8 @@ from typing import Optional
 
 class Settings(BaseSettings):
     # Mantle Network
-    mantle_rpc_url: str = "https://rpc.sepolia.mantle.xyz"
-    mantle_chain_id: int = 5003
+    mantle_rpc_url: str = "https://rpc.mantle.xyz"
+    mantle_chain_id: int = 5000
     
     # Groq AI
     groq_api_key: str
