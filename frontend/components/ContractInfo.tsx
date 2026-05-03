@@ -6,14 +6,14 @@ export function ContractInfo() {
   const contracts = [
     {
       name: "PredictionRegistry",
-      address: "0x9698c4AA501B4C9Fad61b686Ae391c1d325bc91F",
-      description: "On-chain prediction verification",
+      address: "0x4597f29db1FBFAbfCEdDb3E9dEF7cfD584dbA090",
+      description: "Records all predictions on-chain. Only owner can register & verify.",
       icon: "📝",
     },
     {
       name: "AnomalyRewards",
-      address: "0x5ecB830af46E0D48A0d652bc5F97B6f239396571",
-      description: "User staking & rewards",
+      address: "0xCD71e0A3dB3d31e81c1f0961e6B8E58e863A6119",
+      description: "Users stake on signals. Winners share the pool (coming soon).",
       icon: "💰",
     },
   ];
@@ -35,7 +35,7 @@ export function ContractInfo() {
         </motion.div>
         <div>
           <h3 className="text-xl font-bold text-white">Smart Contracts Deployed</h3>
-          <p className="text-sm text-gray-400">Verified on Mantle Sepolia Testnet</p>
+          <p className="text-sm text-gray-400">Verified on Mantle Mainnet</p>
         </div>
       </div>
 
@@ -43,7 +43,7 @@ export function ContractInfo() {
         {contracts.map((contract, i) => (
           <motion.a
             key={contract.name}
-            href={`https://sepolia.mantlescan.xyz/address/${contract.address}`}
+            href={`https://mantlescan.xyz/address/${contract.address}`}
             target="_blank"
             rel="noopener noreferrer"
             className="bg-gray-800/50 backdrop-blur-sm border border-purple-500/20 rounded-xl p-4 hover:border-purple-500/50 transition-all group"
