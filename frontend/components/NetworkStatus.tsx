@@ -15,8 +15,8 @@ export function NetworkStatus() {
         transition={{ duration: 2, repeat: Infinity }}
       />
       <div className="text-sm">
-        <div className="text-green-400 font-semibold">Mantle Sepolia</div>
-        <div className="text-xs text-gray-400">Chain ID: 5003</div>
+        <div className="text-green-400 font-semibold">Mantle Mainnet</div>
+        <div className="text-xs text-gray-400">Chain ID: 5000</div>
       </div>
     </motion.div>
   );
