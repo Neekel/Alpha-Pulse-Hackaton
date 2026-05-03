@@ -65,3 +65,7 @@ logs/
 tmp/
 temp/
 *.tmp
+
+# Railway deployment docs (local only)
+RAILWAY_*.md
+RAILWAY_*.txt
