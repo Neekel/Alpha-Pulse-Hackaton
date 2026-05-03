@@ -1,8 +1,8 @@
 # AlphaPulse
 
-**AI-детектор Smart Money аномалий на Mantle Network**
+Smart Money AI Anomaly Detector on the Mantle Network
 
-"Киты не спят. Теперь ты знаешь, что они делают — за 10 минут до того, как рынок отреагирует."
+“The whales never sleep. Now you know what they're doing—10 minutes before the market reacts.”
 
 Built for Turing Test Hackathon 2026 by Mantle Network.
 
