@@ -80,11 +80,6 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="container mx-auto px-6 py-8">
-        {/* Executive Dashboard - For Investors & Judges */}
-        <div className="mb-8">
-          <ExecutiveDashboard />
-        </div>
-
         {/* Stats Overview */}
         {stats && <StatsPanel stats={stats} />}
 
@@ -121,6 +116,11 @@ export default function Home() {
         {/* Prediction History */}
         <div className="mb-8">
           <PredictionHistory />
+        </div>
+
+        {/* Executive Dashboard - For Investors & Judges (moved to bottom) */}
+        <div className="mb-8">
+          <ExecutiveDashboard />
         </div>
       </div>
 

@@ -9,7 +9,12 @@ app = FastAPI(title="AlphaPulse API - Simple")
 # Add CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://alpha-pulse-hackaton.vercel.app",
+        "https://alpha-pulse-hackaton-frontend.vercel.app",
+        "http://localhost:3000",
+        "*"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
