@@ -8,23 +8,14 @@ web3>=7.0.0
 eth-account>=0.13.0
 
 # Telegram Bot
-<<<<<<< HEAD
 python-telegram-bot>=21.0
-=======
-python-telegram-bot==21.5
->>>>>>> 981f3327c8351de589551ef3b202f3b9beed2f6d
 
 # AI
 groq>=0.13.0
 
 # Database
-<<<<<<< HEAD
 supabase>=2.11.0
 psycopg2-binary
-=======
-supabase==2.11.0
-psycopg2-binary==2.9.9
->>>>>>> 981f3327c8351de589551ef3b202f3b9beed2f6d
 
 # Utilities
 python-dotenv
