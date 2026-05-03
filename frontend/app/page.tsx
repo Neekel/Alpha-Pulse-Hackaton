@@ -10,6 +10,7 @@ import { NetworkStatus } from "@/components/NetworkStatus";
 import { AIAgentDashboard } from "@/components/AIAgentDashboard";
 import { CopyTradingDashboard } from "@/components/CopyTradingDashboard";
 import { MantleStats } from "@/components/MantleStats";
+import { ExecutiveDashboard } from "@/components/ExecutiveDashboard";
 
 export default function Home() {
   const [stats, setStats] = useState<any>(null);
@@ -79,6 +80,11 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="container mx-auto px-6 py-8">
+        {/* Executive Dashboard - For Investors & Judges */}
+        <div className="mb-8">
+          <ExecutiveDashboard />
+        </div>
+
         {/* Stats Overview */}
         {stats && <StatsPanel stats={stats} />}
 
