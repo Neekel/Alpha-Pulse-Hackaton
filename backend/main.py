@@ -126,11 +126,12 @@ app.add_middleware(
 @app.get("/")
 async def root():
     """Health check endpoint"""
+    from datetime import datetime
     return {
         "status": "ok",
         "service": "AlphaPulse",
         "version": "1.0.0",
-        "timestamp": logger._core.now().isoformat()
+        "timestamp": datetime.utcnow().isoformat()
     }
 
 
@@ -283,6 +284,7 @@ async def get_alpha(token: str):
 @app.get("/api/gas")
 async def get_gas_price():
     """Get current Mantle gas price"""
+    from datetime import datetime
     try:
         gas_price = monitor.get_gas_price() if monitor else 0
         gas_price_gwei = gas_price / 1e9
@@ -290,7 +292,7 @@ async def get_gas_price():
         return {
             "gas_price_wei": gas_price,
             "gas_price_gwei": round(gas_price_gwei, 2),
-            "timestamp": logger._core.now().isoformat()
+            "timestamp": datetime.utcnow().isoformat()
         }
     except Exception as e:
         logger.error(f"Error fetching gas price: {e}")
