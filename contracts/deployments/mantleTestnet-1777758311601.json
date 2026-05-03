@@ -1,0 +1,10 @@
+{
+  "network": "mantleTestnet",
+  "chainId": "5003",
+  "deployer": "0x15Ec03bC350D0b37bBEcFc5B4b22907f1A5A47c1",
+  "timestamp": "2026-05-02T21:45:11.600Z",
+  "contracts": {
+    "PredictionRegistry": "0x9698c4AA501B4C9Fad61b686Ae391c1d325bc91F",
+    "AnomalyRewards": "0x5ecB830af46E0D48A0d652bc5F97B6f239396571"
+  }
+}

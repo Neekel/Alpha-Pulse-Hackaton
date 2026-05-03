@@ -1,0 +1,17 @@
+node_modules
+.env
+coverage
+coverage.json
+typechain
+typechain-types
+
+# Hardhat files
+cache
+artifacts
+
+# Deployments (keep in git for reference)
+# deployments/
+
+# Flattened contracts (large files, can be regenerated)
+*_flat.sol
+*_flat_clean.sol
