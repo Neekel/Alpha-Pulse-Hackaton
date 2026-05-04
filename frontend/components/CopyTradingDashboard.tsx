@@ -101,7 +101,7 @@ export function CopyTradingDashboard() {
             Copy Trading Leaderboard
           </h2>
           <p className="text-xs text-[#8892a6] font-mono mt-1">
-            Top performing traders • Follow their strategies
+            Track top traders' performance → Copy their winning strategies automatically
           </p>
         </div>
         <div className="flex items-center gap-2">

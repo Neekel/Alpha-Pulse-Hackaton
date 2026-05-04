@@ -31,12 +31,12 @@ export function ContractInfo() {
             Smart Contracts
           </h3>
           <p className="text-xs text-[#8892a6] font-mono mt-1">
-            Verified on Mantle Mainnet • Chain ID: 5000
+            On-chain verification & transparency • Deployed on Mantle Mainnet
           </p>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-[#00ff88] rounded-full" />
-          <span className="text-xs font-mono text-[#00ff88]">DEPLOYED</span>
+          <span className="text-xs font-mono text-[#00ff88]">VERIFIED</span>
         </div>
       </div>
 

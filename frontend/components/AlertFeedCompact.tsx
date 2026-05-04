@@ -83,7 +83,7 @@ export function AlertFeedCompact({ anomalies, loading }: AlertFeedCompactProps) 
             Live Smart Money Alerts
           </h2>
           <p className="text-xs text-[#8892a6] font-mono mt-1">
-            Real-time detection • {anomalies.length} active signals
+            Real-time whale movements & anomalies detected on Mantle blockchain
           </p>
         </div>
         <div className="flex items-center gap-2">

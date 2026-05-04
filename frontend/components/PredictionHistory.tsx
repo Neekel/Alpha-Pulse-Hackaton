@@ -61,7 +61,7 @@ export function PredictionHistory() {
             Prediction History
           </h2>
           <p className="text-xs text-[#8892a6] font-mono mt-1">
-            Verified predictions • {stats.accuracy}% accuracy rate
+            Detailed history of all predictions with verification status & outcomes
           </p>
         </div>
 

@@ -101,13 +101,13 @@ export function AIPredictionsPro() {
   return (
     <div className="pro-card p-6 h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#1e2a47]">
+      <div className="flex items-center justify-between mb-6 pb-4 border-[#1e2a47]">
         <div>
           <h2 className="text-lg font-mono font-bold text-white uppercase tracking-wider">
             AI Market Intelligence
           </h2>
           <p className="text-xs text-[#8892a6] font-mono mt-1">
-            Multi-timeframe analysis • Updated {new Date(data.lastUpdate).toLocaleTimeString()}
+            Real-time price predictions (1H/6H/24H) based on on-chain data & AI analysis
           </p>
         </div>
         <div className="flex items-center gap-2">

@@ -108,7 +108,7 @@ export function AIAgentDashboard() {
             AI Multi-Agent System
           </h2>
           <p className="text-xs text-[#8892a6] font-mono mt-1">
-            4 specialized agents • Powered by Groq LLM
+            4 AI agents analyze whales, DEX, risk & sentiment → Generate trading signals
           </p>
         </div>
         <button

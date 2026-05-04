@@ -37,20 +37,20 @@ export function StatsPanel({ stats }: StatsPanelProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
       {statItems.map((stat, index) => (
         <motion.div
           key={stat.label}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.05 }}
-          className="pro-card p-6 hover:border-[#00d4ff]/30 transition-colors"
+          className="pro-card p-4 hover:border-[#00d4ff]/30 transition-colors"
         >
-          <div className="metric-label mb-2">{stat.label}</div>
-          <div className={`metric-value ${stat.color}`}>{stat.value}</div>
+          <div className="text-[10px] text-[#8892a6] font-mono mb-1.5 uppercase tracking-wide">{stat.label}</div>
+          <div className={`text-2xl font-mono font-bold ${stat.color}`}>{stat.value}</div>
           
           {stat.label === "Accuracy" && (
-            <div className="mt-3 h-1 bg-[#1e2a47] rounded-full overflow-hidden">
+            <div className="mt-2 h-1 bg-[#1e2a47] rounded-full overflow-hidden">
               <motion.div
                 className="h-full bg-[#00d4ff]"
                 initial={{ width: 0 }}

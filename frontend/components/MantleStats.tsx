@@ -115,18 +115,18 @@ export function MantleStats() {
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+      {/* Stats Grid - Single Row */}
+      <div className="grid grid-cols-6 gap-3 mb-6">
         {metrics.map((metric, idx) => (
           <motion.div
             key={metric.label}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.05 }}
-            className="pro-card-hover p-4"
+            className="pro-card-hover p-3"
           >
-            <div className="metric-label mb-2">{metric.label}</div>
-            <div className={`metric-value ${metric.color}`}>{metric.value}</div>
+            <div className="text-[9px] text-[#8892a6] font-mono mb-1.5 uppercase tracking-wide">{metric.label}</div>
+            <div className={`text-sm font-mono font-bold ${metric.color}`}>{metric.value}</div>
           </motion.div>
         ))}
       </div>
