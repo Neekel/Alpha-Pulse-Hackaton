@@ -50,9 +50,9 @@ export function MantleStats() {
 
   if (loading || !stats) {
     return (
-      <div className="pro-card p-4">
-        <div className="flex items-center justify-center h-20">
-          <div className="text-[#00d4ff] font-mono text-xs">Loading...</div>
+      <div className="pro-card p-6">
+        <div className="flex items-center justify-center h-32">
+          <div className="text-[#00d4ff] font-mono text-sm">Loading Mantle stats...</div>
         </div>
       </div>
     );
@@ -60,101 +60,135 @@ export function MantleStats() {
 
   const metrics = [
     {
-      label: "TVL",
+      label: "Total Value Locked",
       value: `$${formatNumber(stats.tvl)}`,
       color: "text-[#00d4ff]",
     },
     {
-      label: "Daily TX",
+      label: "Daily Transactions",
       value: formatNumber(stats.daily_transactions),
       color: "text-[#00ff88]",
     },
     {
-      label: "Active 24h",
+      label: "Active Addresses (24h)",
       value: formatNumber(stats.active_addresses_24h),
       color: "text-[#ffa502]",
     },
     {
-      label: "TPS",
-      value: formatNumber(stats.tps),
+      label: "Transactions Per Second",
+      value: `${formatNumber(stats.tps)} TPS`,
       color: "text-[#a855f7]",
     },
     {
-      label: "Block",
+      label: "Current Block",
       value: formatNumber(stats.block_number),
       color: "text-[#8892a6]",
     },
     {
-      label: "Gas",
-      value: `${stats.gas_price_gwei}`,
+      label: "Gas Price",
+      value: `${stats.gas_price_gwei} Gwei`,
       color: "text-[#8892a6]",
     },
   ];
 
   return (
-    <div className="pro-card p-4">
-      {/* Compact Header */}
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#1e2a47]">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-gradient-to-br from-[#00d4ff] to-[#a855f7] rounded-sm flex items-center justify-center">
-            <span className="text-white font-bold text-sm">M</span>
+    <div className="pro-card p-6">
+      {/* Header with Mantle Branding */}
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#1e2a47]">
+        <div className="flex items-center gap-3">
+          {/* Mantle Logo Placeholder */}
+          <div className="w-10 h-10 bg-gradient-to-br from-[#00d4ff] to-[#a855f7] rounded-sm flex items-center justify-center">
+            <span className="text-white font-bold text-xl">M</span>
           </div>
           <div>
-            <h2 className="text-sm font-mono font-bold text-white uppercase tracking-wider">
+            <h2 className="text-lg font-mono font-bold text-white uppercase tracking-wider">
               Mantle Network
             </h2>
+            <p className="text-xs text-[#8892a6] font-mono mt-1">
+              Layer 2 • Modular • High Performance
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-1.5 h-1.5 bg-[#00ff88] rounded-full animate-pulse" />
-          <span className="text-[10px] font-mono text-[#00ff88]">LIVE</span>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-[#00ff88] rounded-full animate-pulse" />
+          <span className="text-xs font-mono text-[#00ff88]">LIVE</span>
         </div>
       </div>
 
-      {/* Compact Stats Grid */}
-      <div className="grid grid-cols-3 gap-3">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         {metrics.map((metric, idx) => (
           <motion.div
             key={metric.label}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.03 }}
-            className="pro-card-hover p-2.5"
+            transition={{ delay: idx * 0.05 }}
+            className="pro-card-hover p-4"
           >
-            <div className="text-[9px] text-[#8892a6] font-mono mb-1 uppercase tracking-wide">
-              {metric.label}
-            </div>
-            <div className={`text-sm font-mono font-bold ${metric.color}`}>
-              {metric.value}
-            </div>
+            <div className="metric-label mb-2">{metric.label}</div>
+            <div className={`metric-value ${metric.color}`}>{metric.value}</div>
           </motion.div>
         ))}
       </div>
 
-      {/* Compact Footer */}
-      <div className="mt-3 flex items-center justify-between text-[10px] font-mono">
-        <div className="text-[#8892a6]">
-          Powered by <span className="text-[#00d4ff]">MANTLE</span>
+      {/* Powered by Mantle Badge */}
+      <div className="flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-[#00d4ff]/10 to-[#a855f7]/10 border border-[#00d4ff]/30 rounded-sm">
+        <div className="text-sm font-mono text-[#8892a6]">
+          Powered by
         </div>
-        <div className="flex items-center gap-2">
-          <a
-            href="https://mantlescan.xyz"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#00d4ff] hover:text-[#00b8e6] transition-colors"
-          >
-            Explorer
-          </a>
-          <span className="text-[#8892a6]">•</span>
-          <a
-            href="https://www.mantle.xyz"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#00d4ff] hover:text-[#00b8e6] transition-colors"
-          >
-            Learn More
-          </a>
+        <div className="text-lg font-mono font-bold bg-gradient-to-r from-[#00d4ff] to-[#a855f7] bg-clip-text text-transparent">
+          MANTLE NETWORK
         </div>
+        <a
+          href="https://www.mantle.xyz"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs font-mono text-[#00d4ff] hover:text-[#00b8e6] transition-colors"
+        >
+          Learn More →
+        </a>
+      </div>
+
+      {/* Network Info */}
+      <div className="mt-4 grid grid-cols-2 gap-4">
+        <div className="text-center p-3 bg-[#1e2a47]/20 rounded-sm">
+          <div className="text-xs text-[#8892a6] font-mono mb-1">Chain ID</div>
+          <div className="text-lg font-mono font-bold text-white">{stats.chain_id}</div>
+        </div>
+        <div className="text-center p-3 bg-[#1e2a47]/20 rounded-sm">
+          <div className="text-xs text-[#8892a6] font-mono mb-1">Network</div>
+          <div className="text-lg font-mono font-bold text-[#00ff88]">Mainnet</div>
+        </div>
+      </div>
+
+      {/* Links */}
+      <div className="mt-4 flex items-center justify-center gap-4 text-xs font-mono">
+        <a
+          href="https://mantlescan.xyz"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#00d4ff] hover:text-[#00b8e6] transition-colors"
+        >
+          Explorer
+        </a>
+        <span className="text-[#8892a6]">•</span>
+        <a
+          href="https://bridge.mantle.xyz"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#00d4ff] hover:text-[#00b8e6] transition-colors"
+        >
+          Bridge
+        </a>
+        <span className="text-[#8892a6]">•</span>
+        <a
+          href="https://www.mantle.xyz/ecosystem"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#00d4ff] hover:text-[#00b8e6] transition-colors"
+        >
+          Ecosystem
+        </a>
       </div>
     </div>
   );
