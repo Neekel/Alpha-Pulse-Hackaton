@@ -40,7 +40,7 @@ export function PredictionHistory() {
     }
   };
 
-  const filteredPredictions = predictions.filter(p => 
+  const filteredPredictions = predictions.filter(p =>
     filter === "ALL" || p.type === filter
   );
 
@@ -49,7 +49,7 @@ export function PredictionHistory() {
     correct: predictions.filter(p => p.correct).length,
     accuracy: predictions.filter(p => p.verified).length > 0
       ? Math.round((predictions.filter(p => p.correct).length / predictions.filter(p => p.verified).length) * 100)
-      : 0
+      : 0,
   };
 
   return (
@@ -57,29 +57,56 @@ export function PredictionHistory() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#1e2a47]">
         <div>
+          <div className="text-xs text-[#8892a6] font-mono uppercase tracking-wider mb-1">
+            Historical Accuracy
+          </div>
           <h2 className="text-lg font-mono font-bold text-white uppercase tracking-wider">
             Prediction History
           </h2>
           <p className="text-xs text-[#8892a6] font-mono mt-1">
-            Detailed history of all predictions with verification status & outcomes
+            Verified predictions with verification status &amp; outcomes
           </p>
         </div>
 
-        {/* Filters */}
-        <div className="flex items-center gap-2">
-          {["ALL", "WHALE_BUY", "LIQUIDITY_EXIT", "SMART_CLUSTER", "MOMENTUM_BUILD"].map(f => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-3 py-1 text-xs font-mono rounded-sm transition-colors ${
-                filter === f
-                  ? "bg-[#00d4ff] text-[#0a0e27]"
-                  : "bg-[#1e2a47] text-[#8892a6] hover:bg-[#2a3f5f]"
-              }`}
-            >
-              {f === "ALL" ? "ALL" : f.charAt(0)}
-            </button>
-          ))}
+        <div className="flex items-center gap-4">
+          {/* Accuracy by timeframe */}
+          <div className="flex items-center gap-4">
+            {[
+              { label: "1h", value: 78, color: "text-[#00ff88]" },
+              { label: "6h", value: 72, color: "text-[#00ff88]" },
+              { label: "24h", value: 68, color: "text-[#ffa502]" },
+            ].map(item => (
+              <div key={item.label} className="text-center">
+                <div className="text-xs text-[#8892a6] font-mono">{item.label}</div>
+                <div className={`text-base font-mono font-bold ${item.color}`}>{item.value}%</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="w-px h-8 bg-[#1e2a47]" />
+
+          {/* Filters */}
+          <div className="flex items-center gap-1">
+            {[
+              { key: "ALL", label: "ALL" },
+              { key: "WHALE_BUY", label: "W" },
+              { key: "LIQUIDITY_EXIT", label: "L" },
+              { key: "SMART_CLUSTER", label: "S" },
+              { key: "MOMENTUM_BUILD", label: "M" },
+            ].map(f => (
+              <button
+                key={f.key}
+                onClick={() => setFilter(f.key)}
+                className={`px-3 py-1 text-xs font-mono rounded-sm transition-colors ${
+                  filter === f.key
+                    ? "bg-[#00d4ff] text-[#0a0e27]"
+                    : "bg-[#1e2a47] text-[#8892a6] hover:bg-[#2a3f5f]"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
