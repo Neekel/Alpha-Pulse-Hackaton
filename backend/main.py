@@ -17,6 +17,9 @@ from ai_explainer import AIExplainer
 from bot import AlphaPulseBot
 from ai_agents import OrchestratorAgent
 from copy_trading import CopyTradingSystem
+from dex_analytics import get_dex_summary, get_large_swaps
+from token_scanner import get_new_tokens, get_token_stats
+from onchain_pulse import get_gas_history, get_network_metrics, get_bridge_activity, get_active_addresses
 
 # Configure logging
 logger.remove()
@@ -594,4 +597,100 @@ async def get_mantle_stats():
         }
     except Exception as e:
         logger.error(f"Error getting Mantle stats: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ─── DEX ANALYTICS ────────────────────────────────────────────────────────────
+
+@app.get("/api/dex/summary")
+async def dex_summary():
+    """DEX volumes and top pairs from Mantle subgraphs"""
+    try:
+        web3 = Web3(Web3.HTTPProvider(settings.mantle_rpc_url))
+        data = await get_dex_summary(web3)
+        return data
+    except Exception as e:
+        logger.error(f"DEX summary error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/dex/large-swaps")
+async def dex_large_swaps(min_usd: float = 10000):
+    """Large swaps detected on Mantle (>$10K by default)"""
+    try:
+        web3 = Web3(Web3.HTTPProvider(settings.mantle_rpc_url))
+        swaps = await get_large_swaps(web3, min_usd)
+        return {"swaps": swaps, "count": len(swaps), "timestamp": datetime.utcnow().isoformat()}
+    except Exception as e:
+        logger.error(f"Large swaps error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ─── TOKEN SCANNER ─────────────────────────────────────────────────────────────
+
+@app.get("/api/tokens/new")
+async def new_tokens(blocks_back: int = 300):
+    """Newly deployed ERC20 tokens on Mantle"""
+    try:
+        web3 = Web3(Web3.HTTPProvider(settings.mantle_rpc_url))
+        tokens = await get_new_tokens(web3, blocks_back)
+        stats = await get_token_stats(web3)
+        return {
+            "tokens": tokens,
+            "count": len(tokens),
+            "stats": stats,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"New tokens error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ─── ON-CHAIN PULSE ────────────────────────────────────────────────────────────
+
+@app.get("/api/pulse/network")
+async def pulse_network():
+    """Real-time Mantle network metrics: gas, TPS, congestion"""
+    try:
+        web3 = Web3(Web3.HTTPProvider(settings.mantle_rpc_url))
+        metrics = await get_network_metrics(web3)
+        return metrics
+    except Exception as e:
+        logger.error(f"Network metrics error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/pulse/gas-history")
+async def pulse_gas_history(blocks: int = 20):
+    """Gas price history for last N blocks"""
+    try:
+        web3 = Web3(Web3.HTTPProvider(settings.mantle_rpc_url))
+        history = await get_gas_history(web3, blocks)
+        return {"history": history, "count": len(history), "timestamp": datetime.utcnow().isoformat()}
+    except Exception as e:
+        logger.error(f"Gas history error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/pulse/bridge")
+async def pulse_bridge():
+    """Mantle bridge deposit/withdrawal activity"""
+    try:
+        web3 = Web3(Web3.HTTPProvider(settings.mantle_rpc_url))
+        data = await get_bridge_activity(web3)
+        return data
+    except Exception as e:
+        logger.error(f"Bridge activity error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/pulse/addresses")
+async def pulse_addresses(blocks: int = 100):
+    """Unique active addresses in recent blocks"""
+    try:
+        web3 = Web3(Web3.HTTPProvider(settings.mantle_rpc_url))
+        data = await get_active_addresses(web3, blocks)
+        return data
+    except Exception as e:
+        logger.error(f"Active addresses error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

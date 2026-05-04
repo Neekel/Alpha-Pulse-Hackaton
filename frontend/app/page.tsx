@@ -11,6 +11,9 @@ import { AIAgentDashboard } from "@/components/AIAgentDashboard";
 import { CopyTradingDashboard } from "@/components/CopyTradingDashboard";
 import { MantleStats } from "@/components/MantleStats";
 import { ExecutiveDashboard } from "@/components/ExecutiveDashboard";
+import { DEXAnalytics } from "@/components/DEXAnalytics";
+import { TokenScanner } from "@/components/TokenScanner";
+import { OnChainPulse } from "@/components/OnChainPulse";
 
 export default function Home() {
   const [stats, setStats] = useState<any>(null);
@@ -101,6 +104,21 @@ export default function Home() {
         {/* Copy Trading Dashboard */}
         <div className="mb-8">
           <CopyTradingDashboard />
+        </div>
+
+        {/* On-Chain Pulse */}
+        <div className="mb-8">
+          <OnChainPulse />
+        </div>
+
+        {/* DEX Analytics */}
+        <div className="mb-8">
+          <DEXAnalytics />
+        </div>
+
+        {/* Token Scanner */}
+        <div className="mb-8">
+          <TokenScanner />
         </div>
 
         {/* Main Grid: AI Predictions (50%) + Live Alerts (50%) */}
