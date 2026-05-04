@@ -170,52 +170,93 @@ export function AIAgentDashboard() {
 
           {/* Agent Results */}
           <div className="space-y-3 mb-6">
-            {analysis.agents.map((result, idx) => (
-              <div
-                key={idx}
-                className="flex items-start gap-3 p-3 bg-[#141b2d] rounded-sm"
-              >
-                <div className={`text-sm font-mono ${getStatusColor(result.status)}`}>
-                  {getStatusIcon(result.status)}
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm font-mono font-bold text-white mb-1">
-                    {result.agent}
+            {analysis.agents.map((result, idx) => {
+              let parsed: any = null;
+              try {
+                const raw = result.data?.analysis || "";
+                const jsonMatch = raw.match(/```json\s*([\s\S]*?)```/) || raw.match(/({[\s\S]*})/);
+                parsed = JSON.parse(jsonMatch ? jsonMatch[1] : raw);
+              } catch {}
+
+              return (
+                <div key={idx} className="flex items-start gap-3 p-3 bg-[#141b2d] rounded-sm">
+                  <div className={`text-sm font-mono ${getStatusColor(result.status)}`}>
+                    {getStatusIcon(result.status)}
                   </div>
-                  {result.data && (
-                    <div className="text-xs text-[#8892a6] font-mono">
-                      {JSON.stringify(result.data.analysis).substring(0, 150)}...
-                    </div>
-                  )}
-                  {result.error && (
-                    <div className="text-xs text-[#ff4757] font-mono">
-                      Error: {result.error}
-                    </div>
-                  )}
+                  <div className="flex-1">
+                    <div className="text-sm font-mono font-bold text-white mb-1">{result.agent}</div>
+                    {parsed ? (
+                      <div className="flex flex-wrap gap-2 text-xs font-mono">
+                        {parsed.pattern && <span className="px-2 py-0.5 bg-[#1e2a47] text-[#00d4ff]">Pattern: {parsed.pattern}</span>}
+                        {parsed.risk && <span className={`px-2 py-0.5 bg-[#1e2a47] ${parsed.risk === "HIGH" ? "text-[#ff4757]" : parsed.risk === "MEDIUM" ? "text-[#ffa502]" : "text-[#00ff88]"}`}>Risk: {parsed.risk}</span>}
+                        {parsed.health && <span className={`px-2 py-0.5 bg-[#1e2a47] ${parsed.health === "WARNING" ? "text-[#ffa502]" : "text-[#00ff88]"}`}>{parsed.health}</span>}
+                        {parsed.sentiment && <span className={`px-2 py-0.5 bg-[#1e2a47] ${parsed.sentiment === "BULLISH" ? "text-[#00ff88]" : parsed.sentiment === "BEARISH" ? "text-[#ff4757]" : "text-[#ffa502]"}`}>{parsed.sentiment}</span>}
+                        {parsed.risk_level && <span className={`px-2 py-0.5 bg-[#1e2a47] ${parsed.risk_level === "HIGH" ? "text-[#ff4757]" : parsed.risk_level === "MEDIUM" ? "text-[#ffa502]" : "text-[#00ff88]"}`}>Risk: {parsed.risk_level}</span>}
+                        {parsed.insight && <span className="text-[#8892a6] mt-1 w-full">{parsed.insight}</span>}
+                        {parsed.recommendation && <span className="text-[#8892a6] mt-1 w-full">{parsed.recommendation}</span>}
+                      </div>
+                    ) : result.data?.analysis ? (
+                      <div className="text-xs text-[#8892a6] font-mono">{String(result.data.analysis).replace(/```json|```/g, "").substring(0, 120)}...</div>
+                    ) : null}
+                    {result.error && <div className="text-xs text-[#ff4757] font-mono">Error: {result.error}</div>}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Synthesis */}
-          {analysis.synthesis.status === "success" && (
-            <div className="p-4 bg-[#00d4ff]/10 border border-[#00d4ff]/30 rounded-sm">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-6 h-6 bg-[#00d4ff] rounded-sm flex items-center justify-center font-mono text-xs font-bold text-[#0a0e27]">
-                  Σ
+          {analysis.synthesis.status === "success" && (() => {
+            let rec: any = null;
+            try {
+              const raw = analysis.synthesis.recommendation;
+              const jsonMatch = raw.match(/```json\s*([\s\S]*?)```/) || raw.match(/({[\s\S]*})/);
+              rec = JSON.parse(jsonMatch ? jsonMatch[1] : raw);
+            } catch {}
+
+            return (
+              <div className="p-4 bg-[#00d4ff]/10 border border-[#00d4ff]/30 rounded-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-6 h-6 bg-[#00d4ff] rounded-sm flex items-center justify-center font-mono text-xs font-bold text-[#0a0e27]">I</div>
+                  <h4 className="text-sm font-mono font-bold text-[#00d4ff] uppercase">Final Recommendation</h4>
                 </div>
-                <h4 className="text-sm font-mono font-bold text-[#00d4ff] uppercase">
-                  Final Recommendation
-                </h4>
+                {rec ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-4">
+                      <span className={`text-2xl font-mono font-bold ${rec.action === "BUY" ? "text-[#00ff88]" : rec.action === "SELL" ? "text-[#ff4757]" : "text-[#ffa502]"}`}>
+                        {rec.action}
+                      </span>
+                      {rec.confidence && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-[#8892a6] font-mono">Confidence:</span>
+                          <span className="text-sm font-mono font-bold text-[#00d4ff]">{rec.confidence}%</span>
+                        </div>
+                      )}
+                      {rec.risk_reward && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-[#8892a6] font-mono">R/R:</span>
+                          <span className="text-sm font-mono text-[#ffa502]">{rec.risk_reward}</span>
+                        </div>
+                      )}
+                      {rec.time_horizon && (
+                        <span className="px-2 py-0.5 bg-[#1e2a47] text-xs font-mono text-[#8892a6]">{rec.time_horizon}</span>
+                      )}
+                    </div>
+                    {rec.reasoning && (
+                      <p className="text-xs text-[#8892a6] font-mono leading-relaxed">{rec.reasoning}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-sm text-white font-mono whitespace-pre-wrap">
+                    {analysis.synthesis.recommendation.replace(/```json|```/g, "")}
+                  </div>
+                )}
+                <div className="mt-3 text-xs text-[#8892a6] font-mono">
+                  Based on {analysis.synthesis.agents_consulted} agent analyses
+                </div>
               </div>
-              <div className="text-sm text-white font-mono whitespace-pre-wrap">
-                {analysis.synthesis.recommendation}
-              </div>
-              <div className="mt-3 text-xs text-[#8892a6] font-mono">
-                Based on {analysis.synthesis.agents_consulted} agent analyses
-              </div>
-            </div>
-          )}
+            );
+          })()}
         </motion.div>
       )}
 
