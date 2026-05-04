@@ -1,36 +1,27 @@
 # Web Framework
-fastapi>=0.115.0
-uvicorn[standard]>=0.30.0
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
 python-multipart
 
 # Blockchain
-web3>=7.0.0
-eth-account>=0.13.0
+web3==7.6.0
+eth-account==0.13.4
 
 # Telegram Bot
-python-telegram-bot>=21.0
+python-telegram-bot==21.7
 
 # AI
-groq>=0.13.0
+groq==0.13.0
 
 # Database
-supabase>=2.11.0
-psycopg2-binary
+supabase==2.11.0
 
 # Utilities
 python-dotenv
 requests
 aiohttp
-pydantic>=2.0
-pydantic-settings>=2.0
-
-# Data Processing
-pandas
-numpy
-
-# Async
-asyncio
-aiofiles
+pydantic==2.10.5
+pydantic-settings==2.7.1
 
 # Logging
 loguru
