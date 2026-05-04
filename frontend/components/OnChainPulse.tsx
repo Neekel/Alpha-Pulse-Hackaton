@@ -21,6 +21,7 @@ interface GasPoint {
   block: number;
   timestamp: string;
   gas_price_gwei: number;
+  base_fee_gwei: number;
   utilization_pct: number;
   tx_count: number;
 }
