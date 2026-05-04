@@ -1,0 +1,12 @@
+# Web Framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart
+
+# Utilities
+python-dotenv
+requests
+pydantic>=2.0
+
+# Logging
+loguru
