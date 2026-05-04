@@ -5,10 +5,10 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Copy requirements
-COPY backend/requirements.txt .
+COPY backend/requirements-deploy.txt .
 
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements-deploy.txt
 
 # Copy backend code
 COPY backend/ ./backend/
