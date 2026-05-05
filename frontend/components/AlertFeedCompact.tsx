@@ -75,15 +75,15 @@ export function AlertFeedCompact({ anomalies, loading }: AlertFeedCompactProps) 
   }
 
   return (
-    <div className="pro-card p-6 h-full flex flex-col">
+    <div className="pro-card p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#1e2a47]">
+      <div className="flex items-center justify-between mb-4 pb-4 border-b border-[#1e2a47]">
         <div>
-          <h2 className="text-lg font-mono font-bold text-white uppercase tracking-wider">
+          <h2 className="text-base md:text-lg font-mono font-bold text-white uppercase tracking-wider">
             Live Smart Money Alerts
           </h2>
-          <p className="text-xs text-[#8892a6] font-mono mt-1">
-            Real-time whale movements & anomalies detected on Mantle blockchain
+          <p className="text-[10px] md:text-xs text-[#8892a6] font-mono mt-1">
+            Real-time whale movements & anomalies on Mantle
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -93,7 +93,88 @@ export function AlertFeedCompact({ anomalies, loading }: AlertFeedCompactProps) 
       </div>
 
       {/* Alerts List */}
-      <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+      <div className="space-y-2 max-h-[400px] md:max-h-[480px] overflow-y-auto pr-1">
+        {anomalies.length === 0 ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="text-center">
+              <div className="text-[#8892a6] font-mono text-sm mb-2">No alerts detected</div>
+              <div className="text-xs text-[#8892a6]/60 font-mono">Monitoring blockchain...</div>
+            </div>
+          </div>
+        ) : (
+          anomalies.map((alert, idx) => (
+            <motion.div
+              key={alert.id || idx}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: idx * 0.05 }}
+              className="pro-card-hover p-3"
+            >
+              <div className="flex items-start gap-2">
+                <div className={`w-7 h-7 rounded-sm flex items-center justify-center font-mono text-xs font-bold flex-shrink-0 ${getTypeColor(alert.type)}`}>
+                  {getTypeIcon(alert.type)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-xs font-mono font-bold text-white truncate">
+                      {alert.type.replace(/_/g, " ")}
+                    </span>
+                    <span className={`text-[10px] font-mono font-bold flex-shrink-0 ml-2 ${getPriorityColor(alert.priority)}`}>
+                      {alert.priority}
+                    </span>
+                  </div>
+                  <div className="text-[10px] font-mono text-[#8892a6] mb-1 truncate">{alert.action}</div>
+                  <div className="flex items-center justify-between text-[10px] font-mono">
+                    <span className="text-[#00d4ff]">${(alert.amount / 1000).toFixed(1)}K</span>
+                    <span className="text-[#8892a6]">
+                      {formatDistanceToNow(new Date(alert.timestamp), { addSuffix: true })}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <div className="flex-1 h-0.5 bg-[#1e2a47] rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-[#00d4ff]"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${alert.confidence * 100}%` }}
+                        transition={{ duration: 0.5, delay: idx * 0.05 }}
+                      />
+                    </div>
+                    <span className="text-[10px] font-mono text-[#00d4ff] tabular-nums">
+                      {(alert.confidence * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))
+        )}
+      </div>
+
+      {/* Footer Stats */}
+      <div className="mt-4 pt-3 border-t border-[#1e2a47] grid grid-cols-3 gap-2">
+        <div className="text-center">
+          <div className="text-[10px] font-mono text-[#8892a6] mb-0.5">CRITICAL</div>
+          <div className="text-base font-mono font-bold text-[#ff4757]">
+            {anomalies.filter(a => a.priority === "CRITICAL").length}
+          </div>
+        </div>
+        <div className="text-center">
+          <div className="text-[10px] font-mono text-[#8892a6] mb-0.5">HIGH</div>
+          <div className="text-base font-mono font-bold text-[#ffa502]">
+            {anomalies.filter(a => a.priority === "HIGH").length}
+          </div>
+        </div>
+        <div className="text-center">
+          <div className="text-[10px] font-mono text-[#8892a6] mb-0.5">AVG CONF</div>
+          <div className="text-base font-mono font-bold text-[#00d4ff]">
+            {anomalies.length > 0
+              ? Math.round((anomalies.reduce((sum, a) => sum + a.confidence, 0) / anomalies.length) * 100)
+              : 0}%
+          </div>
+        </div>
+      </div>
+    </div>
+  );
         {anomalies.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">

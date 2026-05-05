@@ -110,82 +110,65 @@ export function CopyTradingDashboard() {
         </div>
       </div>
 
-      {/* Traders Table */}
-      <div className="overflow-x-auto mb-6">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Trader</th>
-              <th>Strategy</th>
-              <th>Profit</th>
-              <th>Win Rate</th>
-              <th>Trades</th>
-              <th>Volume</th>
-              <th>Followers</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {traders.map((trader, idx) => (
-              <motion.tr
-                key={trader.address}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: idx * 0.05 }}
-                className="cursor-pointer"
-                onClick={() => handleTraderClick(trader.address)}
-              >
-                <td>
-                  <span className="text-lg">{getRankBadge(trader.rank)}</span>
-                </td>
-                <td>
-                  <code className="text-[#00d4ff]">
-                    {trader.address.slice(0, 6)}...{trader.address.slice(-4)}
-                  </code>
-                </td>
-                <td>
-                  <span className={`text-xs font-bold ${getStrategyColor(trader.strategy)}`}>
-                    {trader.strategy}
-                  </span>
-                </td>
-                <td>
-                  <div>
-                    <div className="text-[#00ff88] font-bold">
-                      ${(trader.profit / 1000).toFixed(1)}K
-                    </div>
-                    <div className="text-xs text-[#8892a6]">
-                      +{trader.profit_pct.toFixed(1)}%
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div className="flex items-center gap-2">
-                    <div className="w-12 h-1 bg-[#1e2a47] rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-[#00ff88]"
-                        style={{ width: `${trader.win_rate}%` }}
-                      />
-                    </div>
-                    <span className="text-[#00ff88] tabular-nums">
-                      {trader.win_rate.toFixed(1)}%
+      {/* Traders Table - scrollable on mobile */}
+      <div className="overflow-x-auto mb-6 -mx-4 md:mx-0 px-4 md:px-0">
+        <div className="min-w-[600px]">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Trader</th>
+                <th>Strategy</th>
+                <th>Profit</th>
+                <th>Win Rate</th>
+                <th>Trades</th>
+                <th>Volume</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {traders.map((trader, idx) => (
+                <motion.tr
+                  key={trader.address}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: idx * 0.05 }}
+                  className="cursor-pointer"
+                  onClick={() => handleTraderClick(trader.address)}
+                >
+                  <td className="text-[#8892a6] font-mono text-xs">#{trader.rank}</td>
+                  <td>
+                    <code className="text-[#00d4ff] text-xs">
+                      {trader.address.slice(0, 6)}...{trader.address.slice(-4)}
+                    </code>
+                  </td>
+                  <td>
+                    <span className={`text-xs font-bold ${getStrategyColor(trader.strategy)}`}>
+                      {trader.strategy}
                     </span>
-                  </div>
-                </td>
-                <td className="tabular-nums">{trader.trades}</td>
-                <td className="tabular-nums">
-                  ${(trader.total_volume / 1000000).toFixed(2)}M
-                </td>
-                <td className="tabular-nums text-[#8892a6]">{trader.followers}</td>
-                <td>
-                  <button className="pro-btn text-xs">
-                    View
-                  </button>
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
+                  </td>
+                  <td>
+                    <div className="text-[#00ff88] font-bold text-xs">${(trader.profit / 1000).toFixed(1)}K</div>
+                    <div className="text-[10px] text-[#8892a6]">+{trader.profit_pct.toFixed(1)}%</div>
+                  </td>
+                  <td>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-10 h-1 bg-[#1e2a47] rounded-full overflow-hidden">
+                        <div className="h-full bg-[#00ff88]" style={{ width: `${trader.win_rate}%` }} />
+                      </div>
+                      <span className="text-[#00ff88] tabular-nums text-xs">{trader.win_rate.toFixed(0)}%</span>
+                    </div>
+                  </td>
+                  <td className="tabular-nums text-xs">{trader.trades}</td>
+                  <td className="tabular-nums text-xs">${(trader.total_volume / 1000000).toFixed(1)}M</td>
+                  <td>
+                    <button className="pro-btn text-xs py-1 px-2">View</button>
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Trader Details Modal */}

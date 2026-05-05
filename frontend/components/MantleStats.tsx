@@ -115,8 +115,8 @@ export function MantleStats() {
         </div>
       </div>
 
-      {/* Stats Grid - Single Row */}
-      <div className="grid grid-cols-6 gap-3 mb-4">
+      {/* Stats Grid - responsive */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 md:gap-3 mb-4">
         {metrics.map((metric, idx) => (
           <motion.div
             key={metric.label}
@@ -125,27 +125,27 @@ export function MantleStats() {
             transition={{ delay: idx * 0.05 }}
             className="pro-card-hover p-3"
           >
-            <div className="text-[9px] text-[#8892a6] font-mono mb-1.5 uppercase tracking-wide">{metric.label}</div>
+            <div className="text-[9px] text-[#8892a6] font-mono mb-1 uppercase tracking-wide leading-tight">{metric.label}</div>
             <div className={`text-sm font-mono font-bold ${metric.color}`}>{metric.value}</div>
           </motion.div>
         ))}
       </div>
 
-      {/* Footer - single line */}
-      <div className="flex items-center justify-between text-[10px] font-mono text-[#8892a6] pt-3 border-t border-[#1e2a47]">
+      {/* Footer - responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-[10px] font-mono text-[#8892a6] pt-3 border-t border-[#1e2a47]">
         <span>
           Powered by <span className="text-[#00d4ff] font-bold">MANTLE NETWORK</span>
-          <span className="ml-1 text-[#1e2a47]">•</span>
-          <span className="ml-1">Chain ID: {stats.chain_id}</span>
-          <span className="ml-1 text-[#1e2a47]">•</span>
-          <span className="ml-1 text-[#00ff88]">Mainnet</span>
+          <span className="mx-1">•</span>
+          <span>Chain ID: {stats.chain_id}</span>
+          <span className="mx-1">•</span>
+          <span className="text-[#00ff88]">Mainnet</span>
         </span>
         <span className="flex items-center gap-2">
-          <a href="https://mantlescan.xyz" target="_blank" rel="noopener noreferrer" className="text-[#00d4ff] hover:text-[#00b8e6] transition-colors">Explorer</a>
+          <a href="https://mantlescan.xyz" target="_blank" rel="noopener noreferrer" className="text-[#00d4ff] hover:text-[#00b8e6]">Explorer</a>
           <span>•</span>
-          <a href="https://bridge.mantle.xyz" target="_blank" rel="noopener noreferrer" className="text-[#00d4ff] hover:text-[#00b8e6] transition-colors">Bridge</a>
+          <a href="https://bridge.mantle.xyz" target="_blank" rel="noopener noreferrer" className="text-[#00d4ff] hover:text-[#00b8e6]">Bridge</a>
           <span>•</span>
-          <a href="https://www.mantle.xyz" target="_blank" rel="noopener noreferrer" className="text-[#00d4ff] hover:text-[#00b8e6] transition-colors">Learn More</a>
+          <a href="https://www.mantle.xyz" target="_blank" rel="noopener noreferrer" className="text-[#00d4ff] hover:text-[#00b8e6]">Learn More</a>
         </span>
       </div>
     </div>

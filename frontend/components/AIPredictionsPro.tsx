@@ -99,15 +99,15 @@ export function AIPredictionsPro() {
   }
 
   return (
-    <div className="pro-card p-6 h-full flex flex-col">
+    <div className="pro-card p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-[#1e2a47]">
+      <div className="flex items-center justify-between mb-4 pb-4 border-b border-[#1e2a47]">
         <div>
-          <h2 className="text-lg font-mono font-bold text-white uppercase tracking-wider">
+          <h2 className="text-base md:text-lg font-mono font-bold text-white uppercase tracking-wider">
             AI Market Intelligence
           </h2>
-          <p className="text-xs text-[#8892a6] font-mono mt-1">
-            Real-time price predictions (1H/6H/24H) based on on-chain data & AI analysis
+          <p className="text-[10px] md:text-xs text-[#8892a6] font-mono mt-1">
+            Real-time predictions (1H/6H/24H) based on on-chain data
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -116,30 +116,33 @@ export function AIPredictionsPro() {
         </div>
       </div>
 
-      {/* Timeframe Predictions */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      {/* Timeframe Predictions - stack on mobile */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
         {data.predictions.map((pred, idx) => (
           <motion.div
             key={pred.timeframe}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.1 }}
-            className="pro-card-hover p-4"
+            className="pro-card-hover p-3"
           >
-            <div className="text-xs font-mono text-[#8892a6] mb-2 uppercase">
-              {pred.timeframe}
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-mono text-[#8892a6] uppercase">{pred.timeframe}</span>
+              <span className={`text-xs font-mono font-bold px-1.5 py-0.5 rounded-sm ${
+                pred.action === "BUY" ? "bg-[#00ff88]/20 text-[#00ff88]" :
+                pred.action === "SELL" ? "bg-[#ff4757]/20 text-[#ff4757]" :
+                "bg-[#1e2a47] text-[#8892a6]"
+              }`}>{pred.action}</span>
             </div>
-            <div className={`text-xl font-mono font-bold mb-1 ${getDirectionColor(pred.direction)}`}>
+            <div className={`text-lg font-mono font-bold mb-1 ${getDirectionColor(pred.direction)}`}>
               {pred.direction}
             </div>
-            <div className="text-sm font-mono text-white mb-2">
-              {pred.priceTarget}
-            </div>
-            <div className="flex items-center justify-between text-xs font-mono mb-3">
+            <div className="text-sm font-mono text-white mb-2">{pred.priceTarget}</div>
+            <div className="flex items-center justify-between text-xs font-mono mb-1">
               <span className="text-[#8892a6]">Confidence</span>
               <span className="text-[#00d4ff]">{pred.confidence}%</span>
             </div>
-            <div className="h-1 bg-[#1e2a47] rounded-full overflow-hidden mb-3">
+            <div className="h-1 bg-[#1e2a47] rounded-full overflow-hidden mb-2">
               <motion.div
                 className="h-full bg-[#00d4ff]"
                 initial={{ width: 0 }}
@@ -151,48 +154,30 @@ export function AIPredictionsPro() {
               <span className="text-[#8892a6]">Risk</span>
               <span className={getRiskColor(pred.risk)}>{pred.risk}</span>
             </div>
-            <div className="mt-3 pt-3 border-t border-[#1e2a47]">
-              <div className={`text-center text-sm font-mono font-bold ${
-                pred.action === "BUY" ? "text-[#00ff88]" :
-                pred.action === "SELL" ? "text-[#ff4757]" :
-                "text-[#8892a6]"
-              }`}>
-                → {pred.action}
-              </div>
-            </div>
           </motion.div>
         ))}
       </div>
 
       {/* Key Factors */}
-      <div className="mb-6">
-        <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider mb-3">
-          Key Factors
-        </h3>
-        <div className="space-y-2">
+      <div className="mb-4">
+        <h3 className="text-xs font-mono font-bold text-white uppercase tracking-wider mb-2">Key Factors</h3>
+        <div className="space-y-1.5">
           {data.factors.map((factor, idx) => (
-            <div key={idx} className="flex items-center justify-between py-2 border-b border-[#1e2a47]/50">
-              <div className="flex items-center gap-3 flex-1">
-                <div className={`text-xs ${
+            <div key={idx} className="flex items-center justify-between py-1.5 border-b border-[#1e2a47]/50">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <span className={`text-xs flex-shrink-0 ${
                   factor.trend === "up" ? "text-[#00ff88]" :
-                  factor.trend === "down" ? "text-[#ff4757]" :
-                  "text-[#8892a6]"
+                  factor.trend === "down" ? "text-[#ff4757]" : "text-[#8892a6]"
                 }`}>
                   {factor.trend === "up" ? "▲" : factor.trend === "down" ? "▼" : "●"}
-                </div>
-                <span className="text-sm font-mono text-white">{factor.name}</span>
+                </span>
+                <span className="text-xs font-mono text-white truncate">{factor.name}</span>
               </div>
-              <div className="flex items-center gap-4">
-                <span className="text-sm font-mono text-[#00d4ff]">{factor.value}</span>
-                <div className="w-16 h-1 bg-[#1e2a47] rounded-full overflow-hidden">
-                  <div
-                    className={`h-full ${
-                      factor.impact > 70 ? "bg-[#00ff88]" :
-                      factor.impact > 40 ? "bg-[#ffa502]" :
-                      "bg-[#8892a6]"
-                    }`}
-                    style={{ width: `${factor.impact}%` }}
-                  />
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className="text-xs font-mono text-[#00d4ff]">{factor.value}</span>
+                <div className="w-12 h-1 bg-[#1e2a47] rounded-full overflow-hidden hidden sm:block">
+                  <div className={`h-full ${factor.impact > 70 ? "bg-[#00ff88]" : factor.impact > 40 ? "bg-[#ffa502]" : "bg-[#8892a6]"}`}
+                    style={{ width: `${factor.impact}%` }} />
                 </div>
               </div>
             </div>
@@ -201,21 +186,15 @@ export function AIPredictionsPro() {
       </div>
 
       {/* Historical Accuracy */}
-      <div className="mt-auto pt-4 border-t border-[#1e2a47]">
-        <h3 className="text-xs font-mono font-bold text-[#8892a6] uppercase tracking-wider mb-3">
-          Historical Accuracy
-        </h3>
-        <div className="grid grid-cols-3 gap-4">
+      <div className="pt-3 border-t border-[#1e2a47]">
+        <h3 className="text-xs font-mono font-bold text-[#8892a6] uppercase tracking-wider mb-2">Historical Accuracy</h3>
+        <div className="grid grid-cols-3 gap-3">
           {Object.entries(data.accuracy).map(([timeframe, accuracy]) => (
             <div key={timeframe} className="text-center">
               <div className="text-xs font-mono text-[#8892a6] mb-1">{timeframe}</div>
-              <div className={`text-lg font-mono font-bold ${
-                accuracy >= 70 ? "text-[#00ff88]" :
-                accuracy >= 50 ? "text-[#ffa502]" :
-                "text-[#ff4757]"
-              }`}>
-                {accuracy}%
-              </div>
+              <div className={`text-base md:text-lg font-mono font-bold ${
+                accuracy >= 70 ? "text-[#00ff88]" : accuracy >= 50 ? "text-[#ffa502]" : "text-[#ff4757]"
+              }`}>{accuracy}%</div>
             </div>
           ))}
         </div>

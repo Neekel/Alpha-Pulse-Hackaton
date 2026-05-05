@@ -95,89 +95,57 @@ export function ExecutiveDashboard() {
         </div>
       </div>
 
-      {/* Key Highlights */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="pro-card p-6 bg-gradient-to-br from-[#00ff88]/10 to-transparent border-[#00ff88]/30"
-        >
-          <div className="text-xs text-[#8892a6] font-mono mb-2 uppercase">MRR (Monthly Recurring Revenue)</div>
-          <div className="text-3xl font-mono font-bold text-[#00ff88] mb-1">$45K</div>
-          <div className="text-xs text-[#00ff88] font-mono">↗ +127% MoM</div>
+      {/* Key Highlights - 2 cols on mobile, 4 on desktop */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          className="pro-card p-4 border-[#00ff88]/30" style={{background:"linear-gradient(135deg,rgba(0,255,136,0.08),transparent)"}}>
+          <div className="text-[9px] text-[#8892a6] font-mono mb-1 uppercase">MRR</div>
+          <div className="text-2xl font-mono font-bold text-[#00ff88]">$45K</div>
+          <div className="text-[10px] text-[#00ff88] font-mono">↗ +127% MoM</div>
         </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="pro-card p-6 bg-gradient-to-br from-[#00d4ff]/10 to-transparent border-[#00d4ff]/30"
-        >
-          <div className="text-xs text-[#8892a6] font-mono mb-2 uppercase">AI Accuracy</div>
-          <div className="text-3xl font-mono font-bold text-[#00d4ff] mb-1">78.5%</div>
-          <div className="text-xs text-[#00d4ff] font-mono">↗ +5.2% vs baseline</div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="pro-card p-4 border-[#00d4ff]/30" style={{background:"linear-gradient(135deg,rgba(0,212,255,0.08),transparent)"}}>
+          <div className="text-[9px] text-[#8892a6] font-mono mb-1 uppercase">AI Accuracy</div>
+          <div className="text-2xl font-mono font-bold text-[#00d4ff]">78.5%</div>
+          <div className="text-[10px] text-[#00d4ff] font-mono">↗ +5.2% baseline</div>
         </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="pro-card p-6 bg-gradient-to-br from-[#ffa502]/10 to-transparent border-[#ffa502]/30"
-        >
-          <div className="text-xs text-[#8892a6] font-mono mb-2 uppercase">24h Volume</div>
-          <div className="text-3xl font-mono font-bold text-[#ffa502] mb-1">$12.5M</div>
-          <div className="text-xs text-[#ffa502] font-mono">↗ +67% vs yesterday</div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          className="pro-card p-4 border-[#ffa502]/30" style={{background:"linear-gradient(135deg,rgba(255,165,2,0.08),transparent)"}}>
+          <div className="text-[9px] text-[#8892a6] font-mono mb-1 uppercase">24h Volume</div>
+          <div className="text-2xl font-mono font-bold text-[#ffa502]">$12.5M</div>
+          <div className="text-[10px] text-[#ffa502] font-mono">↗ +67% yesterday</div>
         </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="pro-card p-6 bg-gradient-to-br from-[#a855f7]/10 to-transparent border-[#a855f7]/30"
-        >
-          <div className="text-xs text-[#8892a6] font-mono mb-2 uppercase">Active Users</div>
-          <div className="text-3xl font-mono font-bold text-[#a855f7] mb-1">12.5K</div>
-          <div className="text-xs text-[#a855f7] font-mono">↗ +89% growth</div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+          className="pro-card p-4 border-[#a855f7]/30" style={{background:"linear-gradient(135deg,rgba(168,85,247,0.08),transparent)"}}>
+          <div className="text-[9px] text-[#8892a6] font-mono mb-1 uppercase">Active Users</div>
+          <div className="text-2xl font-mono font-bold text-[#a855f7]">12.5K</div>
+          <div className="text-[10px] text-[#a855f7] font-mono">↗ +89% growth</div>
         </motion.div>
       </div>
 
-      {/* Metrics by Category */}
-      <div className="space-y-6">
+      {/* Metrics by Category - 2 cols on mobile, 4 on desktop */}
+      <div className="space-y-5">
         {categories.map((category, catIdx) => {
           const categoryMetrics = getMetricsByCategory(category.id);
           if (categoryMetrics.length === 0) return null;
-
           return (
-            <motion.div
-              key={category.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: catIdx * 0.1 }}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div 
-                  className="w-8 h-8 rounded-sm flex items-center justify-center text-lg"
-                  style={{ backgroundColor: `${category.color}20`, border: `1px solid ${category.color}40` }}
-                >
+            <motion.div key={category.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: catIdx * 0.1 }}>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-sm flex items-center justify-center text-sm"
+                  style={{ backgroundColor: `${category.color}20`, border: `1px solid ${category.color}40` }}>
                   {category.icon}
                 </div>
-                <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider">
-                  {category.name}
-                </h3>
+                <h3 className="text-xs font-mono font-bold text-white uppercase tracking-wider">{category.name}</h3>
               </div>
-
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
                 {categoryMetrics.map((metric, idx) => (
-                  <motion.div
-                    key={metric.label}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                  <motion.div key={metric.label}
+                    initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: catIdx * 0.1 + idx * 0.05 }}
-                    className="pro-card-hover p-4"
-                  >
-                    <div className="text-xs text-[#8892a6] font-mono mb-2">{metric.label}</div>
-                    <div className="text-xl font-mono font-bold text-white mb-1">{metric.value}</div>
-                    <div className={`text-xs font-mono font-bold ${getTrendColor(metric.trend)}`}>
+                    className="pro-card-hover p-3">
+                    <div className="text-[9px] text-[#8892a6] font-mono mb-1 leading-tight">{metric.label}</div>
+                    <div className="text-base md:text-lg font-mono font-bold text-white mb-0.5">{metric.value}</div>
+                    <div className={`text-[10px] font-mono font-bold ${getTrendColor(metric.trend)}`}>
                       {getTrendIcon(metric.trend)} {metric.change}
                     </div>
                   </motion.div>
@@ -188,73 +156,43 @@ export function ExecutiveDashboard() {
         })}
       </div>
 
-      {/* Market Opportunity */}
-      <div className="mt-8 p-6 bg-gradient-to-r from-[#00d4ff]/10 to-[#a855f7]/10 border border-[#00d4ff]/30 rounded-sm">
-        <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider mb-4">
-          📊 Market Opportunity
-        </h3>
-        <div className="grid grid-cols-3 gap-6">
-          <div>
-            <div className="text-xs text-[#8892a6] font-mono mb-2">Total Addressable Market (TAM)</div>
-            <div className="text-2xl font-mono font-bold text-[#00d4ff]">$8.5B</div>
-            <div className="text-xs text-[#8892a6] font-mono mt-1">Crypto trading tools market</div>
-          </div>
-          <div>
-            <div className="text-xs text-[#8892a6] font-mono mb-2">Serviceable Addressable Market (SAM)</div>
-            <div className="text-2xl font-mono font-bold text-[#00ff88]">$1.2B</div>
-            <div className="text-xs text-[#8892a6] font-mono mt-1">AI-powered trading signals</div>
-          </div>
-          <div>
-            <div className="text-xs text-[#8892a6] font-mono mb-2">Serviceable Obtainable Market (SOM)</div>
-            <div className="text-2xl font-mono font-bold text-[#ffa502]">$120M</div>
-            <div className="text-xs text-[#8892a6] font-mono mt-1">Year 3 target (10% of SAM)</div>
-          </div>
+      {/* Market Opportunity - stack on mobile */}
+      <div className="mt-6 p-4 bg-[#00d4ff]/5 border border-[#00d4ff]/30 rounded-sm">
+        <h3 className="text-xs font-mono font-bold text-white uppercase tracking-wider mb-3">Market Opportunity</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            { label: "TAM", sub: "Crypto trading tools", value: "$8.5B", color: "text-[#00d4ff]" },
+            { label: "SAM", sub: "AI-powered signals", value: "$1.2B", color: "text-[#00ff88]" },
+            { label: "SOM", sub: "Year 3 target", value: "$120M", color: "text-[#ffa502]" },
+          ].map(item => (
+            <div key={item.label}>
+              <div className="text-[10px] text-[#8892a6] font-mono mb-1">{item.label} — {item.sub}</div>
+              <div className={`text-xl font-mono font-bold ${item.color}`}>{item.value}</div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Competitive Advantages */}
-      <div className="mt-6 grid grid-cols-2 gap-4">
+      {/* Competitive + Revenue - stack on mobile */}
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="pro-card p-4">
-          <h4 className="text-xs font-mono font-bold text-[#00d4ff] uppercase mb-3">🎯 Competitive Advantages</h4>
-          <ul className="space-y-2 text-xs font-mono text-[#8892a6]">
-            <li className="flex items-start gap-2">
-              <span className="text-[#00ff88]">✓</span>
-              <span>Multi-agent AI system (unique in market)</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-[#00ff88]">✓</span>
-              <span>On-chain verification (100% transparent)</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-[#00ff88]">✓</span>
-              <span>Copy trading with AI analysis</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-[#00ff88]">✓</span>
-              <span>Mantle Network integration (low fees)</span>
-            </li>
+          <h4 className="text-xs font-mono font-bold text-[#00d4ff] uppercase mb-3">Competitive Advantages</h4>
+          <ul className="space-y-1.5 text-xs font-mono text-[#8892a6]">
+            {["Multi-agent AI system (unique)", "On-chain verification (transparent)", "Copy trading with AI analysis", "Mantle Network (low fees)"].map(item => (
+              <li key={item} className="flex items-start gap-2">
+                <span className="text-[#00ff88] flex-shrink-0">✓</span><span>{item}</span>
+              </li>
+            ))}
           </ul>
         </div>
-
         <div className="pro-card p-4">
-          <h4 className="text-xs font-mono font-bold text-[#ffa502] uppercase mb-3">💰 Revenue Streams</h4>
-          <ul className="space-y-2 text-xs font-mono text-[#8892a6]">
-            <li className="flex items-center justify-between">
-              <span>Premium Subscriptions</span>
-              <span className="text-[#00ff88]">$29/mo</span>
-            </li>
-            <li className="flex items-center justify-between">
-              <span>Copy Trading Fees</span>
-              <span className="text-[#00ff88]">10% profit</span>
-            </li>
-            <li className="flex items-center justify-between">
-              <span>API Access</span>
-              <span className="text-[#00ff88]">$99/mo</span>
-            </li>
-            <li className="flex items-center justify-between">
-              <span>Enterprise Plans</span>
-              <span className="text-[#00ff88]">$499/mo</span>
-            </li>
+          <h4 className="text-xs font-mono font-bold text-[#ffa502] uppercase mb-3">Revenue Streams</h4>
+          <ul className="space-y-1.5 text-xs font-mono text-[#8892a6]">
+            {[["Premium Subscriptions", "$29/mo"], ["Copy Trading Fees", "10% profit"], ["API Access", "$99/mo"], ["Enterprise Plans", "$499/mo"]].map(([k, v]) => (
+              <li key={k} className="flex items-center justify-between">
+                <span>{k}</span><span className="text-[#00ff88]">{v}</span>
+              </li>
+            ))}
           </ul>
         </div>
       </div>
