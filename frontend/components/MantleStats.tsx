@@ -47,31 +47,31 @@ export function MantleStats() {
     : [];
 
   return (
-    <div className="pro-card px-4 py-3 mb-3">
-      <div className="flex items-center justify-between">
+    <div className="pro-card px-4 py-3 mb-2">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
         {/* Brand */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          <div className="w-5 h-5 bg-gradient-to-br from-[#00d4ff] to-[#a855f7] rounded-sm flex items-center justify-center">
-            <span className="text-white font-bold text-[10px]">M</span>
+          <div className="w-6 h-6 bg-gradient-to-br from-[#00d4ff] to-[#a855f7] rounded-sm flex items-center justify-center">
+            <span className="text-white font-bold text-xs">M</span>
           </div>
-          <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">Mantle</span>
-          <span className="text-[10px] font-mono text-[#00ff88] px-1.5 py-0.5 bg-[#00ff88]/10 border border-[#00ff88]/30 rounded-sm">Mainnet</span>
-          <span className="text-[10px] font-mono text-[#8892a6]">Chain {stats?.chain_id ?? 5000}</span>
+          <span className="text-sm font-mono font-bold text-white uppercase tracking-wider">Mantle</span>
+          <span className="text-xs font-mono text-[#00ff88] px-1.5 py-0.5 bg-[#00ff88]/10 border border-[#00ff88]/30 rounded-sm">Mainnet</span>
+          <span className="text-xs font-mono text-[#8892a6]">Chain {stats?.chain_id ?? 5000}</span>
         </div>
 
-        {/* Metrics inline */}
-        <div className="flex items-center gap-4 overflow-x-auto">
+        {/* Metrics */}
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
           {metrics.map((m) => (
-            <div key={m.label} className="flex items-center gap-1.5 flex-shrink-0">
-              <span className="text-[10px] text-[#8892a6] font-mono">{m.label}</span>
+            <div key={m.label} className="flex items-baseline gap-1.5">
+              <span className="text-xs text-[#8892a6] font-mono">{m.label}</span>
               <span className={`text-sm font-mono font-bold tabular-nums ${m.color}`}>{m.value}</span>
             </div>
           ))}
-          {!stats && <span className="text-[10px] text-[#8892a6] font-mono">Loading...</span>}
+          {!stats && <span className="text-xs text-[#8892a6] font-mono">Loading...</span>}
         </div>
 
         {/* Links */}
-        <div className="hidden md:flex items-center gap-3 flex-shrink-0 text-[10px] font-mono">
+        <div className="hidden lg:flex items-center gap-3 ml-auto text-xs font-mono">
           <a href="https://mantlescan.xyz" target="_blank" rel="noopener noreferrer" className="text-[#00d4ff] hover:text-[#00b8e6]">Explorer</a>
           <span className="text-[#1e2a47]">•</span>
           <a href="https://bridge.mantle.xyz" target="_blank" rel="noopener noreferrer" className="text-[#00d4ff] hover:text-[#00b8e6]">Bridge</a>

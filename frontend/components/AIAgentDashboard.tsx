@@ -120,21 +120,18 @@ export function AIAgentDashboard() {
         </button>
       </div>
 
-      {/* Agent Status - compact single row */}
+      {/* Agent Status - compact 4 columns */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
-        {agents.map((agent, idx) => (
-          <div
-            key={agent.name}
-            className="pro-card-hover px-3 py-2 flex items-center gap-2"
-          >
-            <div className="w-6 h-6 bg-[#00d4ff] rounded-sm flex items-center justify-center font-mono text-xs font-bold text-[#0a0e27] flex-shrink-0">
+        {agents.map((agent) => (
+          <div key={agent.name} className="pro-card-hover px-3 py-2.5 flex items-center gap-2.5">
+            <div className="w-7 h-7 bg-[#00d4ff] rounded-sm flex items-center justify-center font-mono text-sm font-bold text-[#0a0e27] flex-shrink-0">
               {agent.name.charAt(0)}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-xs font-mono font-bold text-white truncate">{agent.name}</div>
-              <div className="text-[10px] font-mono text-[#8892a6] truncate">{agent.role.split(" ").slice(0, 3).join(" ")}</div>
+              <div className="text-sm font-mono font-bold text-white truncate">{agent.name}</div>
+              <div className="text-xs font-mono text-[#8892a6] truncate">{agent.role.split(" ").slice(0, 3).join(" ")}</div>
             </div>
-            <div className={`text-sm font-mono flex-shrink-0 ${getStatusColor(agent.status)}`}>
+            <div className={`text-base font-mono flex-shrink-0 ${getStatusColor(agent.status)}`}>
               {getStatusIcon(agent.status)}
             </div>
           </div>
@@ -246,7 +243,7 @@ export function AIAgentDashboard() {
 
       {/* Info Banner */}
       <div className="mt-4 px-3 py-2 bg-[#1e2a47]/20 border border-[#1e2a47] rounded-sm">
-        <div className="text-[10px] text-[#8892a6] font-mono">
+        <div className="text-xs text-[#8892a6] font-mono">
           <span className="text-[#00d4ff] font-bold">How it works:</span> 4 specialized agents (whales, DEX, risk, sentiment) analyze data in parallel → Orchestrator synthesizes final recommendation.
         </div>
       </div>

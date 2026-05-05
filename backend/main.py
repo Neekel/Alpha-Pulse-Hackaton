@@ -38,6 +38,8 @@ def _set_cache(key: str, data, ttl: int):
 # Configure logging
 logger.remove()
 logger.add(sys.stderr, level="INFO")
+import os
+os.makedirs("logs", exist_ok=True)
 logger.add("logs/alphapulse.log", rotation="1 day", retention="7 days", level="DEBUG")
 
 # Global instances

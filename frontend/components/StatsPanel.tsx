@@ -12,7 +12,7 @@ interface StatsPanelProps {
 
 export function StatsPanel({ stats }: StatsPanelProps) {
   const items = [
-    { label: "Predictions", value: stats.total_predictions, color: "text-[#00d4ff]" },
+    { label: "Total Predictions", value: stats.total_predictions, color: "text-[#00d4ff]" },
     { label: "Verified", value: stats.verified, color: "text-[#00ff88]" },
     { label: "Correct", value: stats.correct, color: "text-[#00ff88]" },
     {
@@ -23,11 +23,11 @@ export function StatsPanel({ stats }: StatsPanelProps) {
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-2 mb-3">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
       {items.map((item) => (
-        <div key={item.label} className="pro-card px-4 py-3 flex items-center justify-between">
-          <span className="text-[10px] text-[#8892a6] font-mono uppercase tracking-wide">{item.label}</span>
-          <span className={`text-lg font-mono font-bold tabular-nums ${item.color}`}>{item.value}</span>
+        <div key={item.label} className="pro-card px-4 py-3">
+          <div className="text-xs text-[#8892a6] font-mono uppercase tracking-wide mb-1">{item.label}</div>
+          <div className={`text-2xl font-mono font-bold tabular-nums ${item.color}`}>{item.value}</div>
         </div>
       ))}
     </div>
