@@ -526,18 +526,20 @@ async def run_ai_analysis():
 @app.get("/api/copy-trading/top-traders")
 async def get_top_traders(limit: int = 10):
     """Get top performing traders"""
+    cached = _cached("top_traders", 60, None)
+    if cached:
+        return cached
     try:
         if not copy_trading:
             raise HTTPException(status_code=503, detail="Copy trading system not initialized")
-        
         traders = await copy_trading.get_top_traders(limit)
-        
-        return {
+        result = {
             "traders": traders,
             "count": len(traders),
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+        _set_cache("top_traders", result, 60)
+        return result
     except Exception as e:
         logger.error(f"Error getting top traders: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -654,15 +656,14 @@ async def dex_large_swaps(min_usd: float = 10000):
 # ─── TOKEN SCANNER ─────────────────────────────────────────────────────────────
 
 @app.get("/api/tokens/new")
-async def new_tokens(blocks_back: int = 300):
+async def new_tokens(blocks_back: int = 100):
     """Newly deployed ERC20 tokens on Mantle"""
     cached = _cached("new_tokens", 120, None)
     if cached:
         return cached
     try:
-        web3 = Web3(Web3.HTTPProvider(settings.mantle_rpc_url))
-        tokens = await get_new_tokens(web3, blocks_back)
-        stats = await get_token_stats(web3)
+        tokens = await get_new_tokens(settings.mantle_rpc_url, blocks_back)
+        stats = await get_token_stats(settings.mantle_rpc_url)
         result = {
             "tokens": tokens,
             "count": len(tokens),
@@ -681,22 +682,29 @@ async def new_tokens(blocks_back: int = 300):
 @app.get("/api/pulse/network")
 async def pulse_network():
     """Real-time Mantle network metrics: gas, TPS, congestion"""
+    cached = _cached("pulse_network", 15, None)
+    if cached:
+        return cached
     try:
-        web3 = Web3(Web3.HTTPProvider(settings.mantle_rpc_url))
-        metrics = await get_network_metrics(web3)
-        return metrics
+        data = await get_network_metrics(settings.mantle_rpc_url)
+        _set_cache("pulse_network", data, 15)
+        return data
     except Exception as e:
         logger.error(f"Network metrics error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/api/pulse/gas-history")
-async def pulse_gas_history(blocks: int = 20):
+async def pulse_gas_history(blocks: int = 10):
     """Gas price history for last N blocks"""
+    cached = _cached("pulse_gas", 30, None)
+    if cached:
+        return cached
     try:
-        web3 = Web3(Web3.HTTPProvider(settings.mantle_rpc_url))
-        history = await get_gas_history(web3, blocks)
-        return {"history": history, "count": len(history), "timestamp": datetime.utcnow().isoformat()}
+        history = await get_gas_history(settings.mantle_rpc_url, blocks)
+        result = {"history": history, "count": len(history), "timestamp": datetime.utcnow().isoformat()}
+        _set_cache("pulse_gas", result, 30)
+        return result
     except Exception as e:
         logger.error(f"Gas history error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -705,9 +713,12 @@ async def pulse_gas_history(blocks: int = 20):
 @app.get("/api/pulse/bridge")
 async def pulse_bridge():
     """Mantle bridge deposit/withdrawal activity"""
+    cached = _cached("pulse_bridge", 60, None)
+    if cached:
+        return cached
     try:
-        web3 = Web3(Web3.HTTPProvider(settings.mantle_rpc_url))
-        data = await get_bridge_activity(web3)
+        data = await get_bridge_activity(settings.mantle_rpc_url, 50)
+        _set_cache("pulse_bridge", data, 60)
         return data
     except Exception as e:
         logger.error(f"Bridge activity error: {e}")
@@ -715,11 +726,14 @@ async def pulse_bridge():
 
 
 @app.get("/api/pulse/addresses")
-async def pulse_addresses(blocks: int = 100):
+async def pulse_addresses(blocks: int = 20):
     """Unique active addresses in recent blocks"""
+    cached = _cached("pulse_addresses", 60, None)
+    if cached:
+        return cached
     try:
-        web3 = Web3(Web3.HTTPProvider(settings.mantle_rpc_url))
-        data = await get_active_addresses(web3, blocks)
+        data = await get_active_addresses(settings.mantle_rpc_url, blocks)
+        _set_cache("pulse_addresses", data, 60)
         return data
     except Exception as e:
         logger.error(f"Active addresses error: {e}")

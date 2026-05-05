@@ -1,4 +1,4 @@
-"""Token Scanner - Detect new tokens deployed on Mantle Network"""
+"""Token Scanner - Detect new ERC20 tokens deployed on Mantle (non-blocking)"""
 import asyncio
 import aiohttp
 from web3 import Web3
@@ -6,10 +6,8 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional
 from loguru import logger
 
-# Mantlescan API - free, no key needed for basic endpoints
 MANTLESCAN_API = "https://api.mantlescan.xyz/api"
 
-# ERC20 minimal ABI
 ERC20_ABI = [
     {"inputs": [], "name": "name", "outputs": [{"type": "string"}], "stateMutability": "view", "type": "function"},
     {"inputs": [], "name": "symbol", "outputs": [{"type": "string"}], "stateMutability": "view", "type": "function"},
@@ -54,193 +52,141 @@ def _risk_color(score: int) -> str:
     return "#ff0000"
 
 
-async def _get_recent_contracts_mantlescan(limit: int = 20) -> List[Dict]:
-    """Fetch recently verified contracts from Mantlescan API"""
+def _scan_deploy_txs_sync(rpc_url: str, blocks_back: int = 100) -> List[tuple]:
+    """Synchronous: find contract deployment txs in recent blocks. Run via to_thread."""
+    web3 = Web3(Web3.HTTPProvider(rpc_url, request_kwargs={"timeout": 5}))
+    deploy_txs = []
     try:
-        url = (
-            f"{MANTLESCAN_API}?module=contract&action=getcontractcreation"
-            f"&contractaddresses=&apikey=YourApiKeyToken"
-        )
-        # Use the txlist endpoint to find contract deployments
-        # Mantlescan: get latest transactions that are contract creations
-        url = (
-            f"{MANTLESCAN_API}?module=account&action=txlist"
-            f"&address=0x0000000000000000000000000000000000000000"
-            f"&startblock=0&endblock=99999999&sort=desc&page=1&offset={limit}"
-        )
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=8)) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    return data.get("result", []) if isinstance(data.get("result"), list) else []
+        current_block = web3.eth.block_number
+        # Sample every 5th block
+        sample = list(range(current_block - blocks_back, current_block, 5))[-30:]
+        for block_num in sample:
+            try:
+                block = web3.eth.get_block(block_num, full_transactions=True)
+                for tx in block.transactions:
+                    if tx.get("to") is None:
+                        deploy_txs.append((dict(tx), block.timestamp, block.number))
+                if len(deploy_txs) >= 20:
+                    break
+            except Exception:
+                continue
     except Exception as e:
-        logger.warning(f"Mantlescan API error: {e}")
-    return []
+        logger.error(f"Scan deploy txs error: {e}")
+    return deploy_txs
 
 
-async def _get_verified_contracts(page: int = 1, offset: int = 20) -> List[Dict]:
-    """Get recently verified contracts from Mantlescan"""
+def _get_erc20_info_sync(rpc_url: str, tx_hash: str, deployer: str, timestamp: int, block_num: int) -> Optional[Dict]:
+    """Synchronous: get receipt + ERC20 info. Run via to_thread."""
+    web3 = Web3(Web3.HTTPProvider(rpc_url, request_kwargs={"timeout": 5}))
     try:
-        url = (
-            f"{MANTLESCAN_API}?module=contract&action=getcontractcreation"
-            f"&page={page}&offset={offset}&sort=desc"
-        )
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=8)) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    result = data.get("result", [])
-                    if isinstance(result, list):
-                        return result
-    except Exception as e:
-        logger.warning(f"Mantlescan verified contracts error: {e}")
-    return []
+        receipt = web3.eth.get_transaction_receipt(tx_hash)
+        if not receipt or not receipt.get("contractAddress"):
+            return None
+        addr = receipt["contractAddress"]
+        contract = web3.eth.contract(address=Web3.to_checksum_address(addr), abi=ERC20_ABI)
+        try:
+            name = contract.functions.name().call()
+            symbol = contract.functions.symbol().call()
+            decimals = contract.functions.decimals().call()
+            total_supply_raw = contract.functions.totalSupply().call()
+            total_supply = total_supply_raw / (10 ** decimals) if decimals else total_supply_raw
+        except Exception:
+            return None  # Not ERC20
 
+        deploy_time = datetime.fromtimestamp(timestamp)
+        age_hours = (datetime.utcnow() - deploy_time).total_seconds() / 3600
 
-async def _check_is_erc20(web3: Web3, address: str) -> Optional[Dict]:
-    """Check if address is ERC20 and return token info"""
-    try:
-        contract = web3.eth.contract(
-            address=Web3.to_checksum_address(address),
-            abi=ERC20_ABI
-        )
-        name = contract.functions.name().call()
-        symbol = contract.functions.symbol().call()
-        decimals = contract.functions.decimals().call()
-        total_supply_raw = contract.functions.totalSupply().call()
-        total_supply = total_supply_raw / (10 ** decimals) if decimals else total_supply_raw
         return {
+            "address": addr,
             "name": name[:50] if name else "Unknown",
             "symbol": symbol[:20] if symbol else "???",
             "decimals": decimals,
             "total_supply": total_supply,
+            "deployer": deployer,
+            "tx_hash": tx_hash if isinstance(tx_hash, str) else tx_hash.hex(),
+            "block": block_num,
+            "deployed_at": deploy_time.isoformat(),
+            "age_hours": round(age_hours, 2),
+            "is_verified": False,
+            "source_code": "",
+            "holders": 1,
+            "liquidity_usd": 0,
         }
-    except Exception:
+    except Exception as e:
+        logger.debug(f"ERC20 info error: {e}")
         return None
 
 
-async def _check_verification(address: str) -> tuple[bool, str]:
-    """Check if contract is verified on Mantlescan, return (is_verified, source_code)"""
+async def _check_verification(address: str) -> tuple:
+    """Async: check Mantlescan verification."""
     try:
         url = f"{MANTLESCAN_API}?module=contract&action=getsourcecode&address={address}"
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=4)) as resp:
                 if resp.status == 200:
                     data = await resp.json()
                     result = data.get("result", [{}])
                     if result and isinstance(result, list) and result[0].get("SourceCode"):
-                        return True, result[0]["SourceCode"][:500]
+                        return True, result[0]["SourceCode"][:300]
     except Exception:
         pass
     return False, ""
 
 
-async def get_new_tokens(web3: Web3, blocks_back: int = 300) -> List[Dict[str, Any]]:
-    """
-    Scan recent blocks for new ERC20 token deployments.
-    Uses RPC to find contract creations, then checks ERC20 interface.
-    Optimized: scans in parallel batches.
-    """
-    tokens = []
-    current_block = web3.eth.block_number
-    start_block = current_block - blocks_back
-
-    logger.info(f"Scanning blocks {start_block}-{current_block} for new tokens")
-
-    # Collect contract deployment txs
-    deploy_txs = []
-    # Sample every 5th block for speed
-    sample_blocks = list(range(start_block, current_block, 5))[-60:]  # max 60 blocks
-
-    for block_num in sample_blocks:
-        try:
-            block = web3.eth.get_block(block_num, full_transactions=True)
-            for tx in block.transactions:
-                if tx.get("to") is None:
-                    deploy_txs.append((tx, block))
-            if len(deploy_txs) >= 30:
-                break
-        except Exception:
-            continue
-
+async def get_new_tokens(rpc_url: str, blocks_back: int = 100) -> List[Dict[str, Any]]:
+    """Find new ERC20 tokens deployed on Mantle."""
+    # Step 1: scan blocks in thread
+    deploy_txs = await asyncio.to_thread(_scan_deploy_txs_sync, rpc_url, blocks_back)
     logger.info(f"Found {len(deploy_txs)} contract deployments")
 
-    # Process deployments in parallel (max 10 at a time)
-    async def process_deploy(tx, block):
-        try:
-            receipt = web3.eth.get_transaction_receipt(tx["hash"])
-            if not receipt or not receipt.get("contractAddress"):
+    # Step 2: get ERC20 info in parallel threads (max 8 at once)
+    sem = asyncio.Semaphore(8)
+
+    async def process(tx_dict, ts, block_num):
+        async with sem:
+            tx_hash = tx_dict.get("hash", "")
+            if hasattr(tx_hash, "hex"):
+                tx_hash = tx_hash.hex()
+            deployer = tx_dict.get("from", "")
+            info = await asyncio.to_thread(_get_erc20_info_sync, rpc_url, tx_hash, deployer, ts, block_num)
+            if not info:
                 return None
-            addr = receipt["contractAddress"]
-
-            # Check ERC20
-            token_info = await _check_is_erc20(web3, addr)
-            if not token_info:
-                return None
-
-            # Check verification
-            is_verified, source_code = await _check_verification(addr)
-
-            deploy_time = datetime.fromtimestamp(block.timestamp)
-            age_hours = (datetime.utcnow() - deploy_time).total_seconds() / 3600
-
-            info = {
-                "address": addr,
-                **token_info,
-                "deployer": tx.get("from", ""),
-                "tx_hash": tx["hash"].hex(),
-                "block": block.number,
-                "deployed_at": deploy_time.isoformat(),
-                "age_hours": round(age_hours, 2),
-                "is_verified": is_verified,
-                "source_code": source_code,
-                "holders": 1,
-                "liquidity_usd": 0,
-            }
+            # Check verification async
+            is_verified, source = await _check_verification(info["address"])
+            info["is_verified"] = is_verified
+            info["source_code"] = source
             score = _safety_score(info)
             info["safety_score"] = score
             info["risk_label"] = _risk_label(score)
             info["risk_color"] = _risk_color(score)
-            info.pop("source_code", None)  # Don't send full source to frontend
+            info.pop("source_code", None)
             return info
-        except Exception as e:
-            logger.debug(f"process_deploy error: {e}")
-            return None
 
-    # Process in batches of 10
-    for i in range(0, len(deploy_txs), 10):
-        batch = deploy_txs[i:i+10]
-        results = await asyncio.gather(*[process_deploy(tx, blk) for tx, blk in batch])
-        tokens.extend([r for r in results if r is not None])
-        if len(tokens) >= 20:
-            break
-
+    results = await asyncio.gather(*[process(tx, ts, bn) for tx, ts, bn in deploy_txs])
+    tokens = [r for r in results if r is not None]
     tokens.sort(key=lambda x: x["deployed_at"], reverse=True)
     return tokens[:20]
 
 
-async def get_token_stats(web3: Web3) -> Dict[str, Any]:
-    """Quick token deployment stats from last 100 blocks"""
-    try:
-        current_block = web3.eth.block_number
+async def get_token_stats(rpc_url: str) -> Dict[str, Any]:
+    """Quick token deployment rate estimate."""
+    def _sync(rpc_url):
+        web3 = Web3(Web3.HTTPProvider(rpc_url, request_kwargs={"timeout": 5}))
         deployments = 0
-        # Sample 20 blocks
-        for block_num in range(current_block - 100, current_block, 5):
-            try:
-                block = web3.eth.get_block(block_num, full_transactions=True)
-                for tx in block.transactions:
-                    if tx.get("to") is None:
-                        deployments += 1
-            except Exception:
-                continue
-        # Extrapolate to 1h (Mantle ~2s block time = ~1800 blocks/hr)
-        rate_per_block = deployments / 20 if deployments else 0
-        per_hour = int(rate_per_block * 1800)
-        return {
-            "new_tokens_1h": per_hour,
-            "new_tokens_24h": per_hour * 24,
-            "timestamp": datetime.utcnow().isoformat(),
-        }
-    except Exception as e:
-        logger.error(f"Token stats error: {e}")
-        return {"new_tokens_1h": 0, "new_tokens_24h": 0}
+        try:
+            current_block = web3.eth.block_number
+            for block_num in range(current_block - 50, current_block, 5):
+                try:
+                    block = web3.eth.get_block(block_num, full_transactions=True)
+                    for tx in block.transactions:
+                        if tx.get("to") is None:
+                            deployments += 1
+                except Exception:
+                    continue
+        except Exception as e:
+            logger.error(f"Token stats error: {e}")
+        rate = deployments / 10  # per block (sampled 10 blocks)
+        per_hour = int(rate * 1800)  # ~1800 blocks/hr on Mantle
+        return {"new_tokens_1h": per_hour, "new_tokens_24h": per_hour * 24, "timestamp": datetime.utcnow().isoformat()}
+
+    return await asyncio.to_thread(_sync, rpc_url)

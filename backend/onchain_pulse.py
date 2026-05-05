@@ -1,169 +1,144 @@
-"""On-Chain Pulse - Real-time Mantle Network metrics"""
+"""On-Chain Pulse - Real-time Mantle Network metrics (non-blocking)"""
 import asyncio
-import aiohttp
 from web3 import Web3
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import List, Dict, Any
 from loguru import logger
 
-# Mantle Bridge contract address
 MANTLE_BRIDGE = "0x95fC37A27a2f68e3A647CDc081F2702ca9a56D5E"
 
-# Mantle L1 Standard Bridge
-L1_BRIDGE = "0x95fC37A27a2f68e3A647CDc081F2702ca9a56D5E"
 
-
-async def get_gas_history(web3: Web3, blocks: int = 20) -> List[Dict[str, Any]]:
-    """Get gas price history from last N blocks"""
+def _fetch_gas_history_sync(rpc_url: str, blocks: int = 10) -> List[Dict[str, Any]]:
+    """Synchronous: fetch last N blocks for gas history. Run via to_thread."""
+    web3 = Web3(Web3.HTTPProvider(rpc_url, request_kwargs={"timeout": 5}))
     history = []
     try:
         current_block = web3.eth.block_number
-        for block_num in range(current_block - blocks, current_block + 1):
+        gas_price = web3.eth.gas_price
+        gas_gwei = round(float(web3.from_wei(gas_price, "gwei")), 4)
+
+        # Only fetch every 2nd block to halve RPC calls
+        for block_num in range(current_block - blocks * 2, current_block, 2):
             try:
                 block = web3.eth.get_block(block_num)
-                gas_price = web3.eth.gas_price
                 history.append({
                     "block": block_num,
                     "timestamp": datetime.fromtimestamp(block.timestamp).isoformat(),
-                    "gas_price_gwei": round(float(web3.from_wei(gas_price, "gwei")), 4),
-                    "base_fee_gwei": round(
-                        float(web3.from_wei(block.get("baseFeePerGas", 0), "gwei")), 4
-                    ) if block.get("baseFeePerGas") else 0,
+                    "gas_price_gwei": gas_gwei,
+                    "base_fee_gwei": round(float(web3.from_wei(block.get("baseFeePerGas", 0), "gwei")), 4)
+                        if block.get("baseFeePerGas") else 0,
                     "tx_count": len(block.transactions),
                     "gas_used": block.gasUsed,
                     "gas_limit": block.gasLimit,
                     "utilization_pct": round(block.gasUsed / block.gasLimit * 100, 1) if block.gasLimit else 0,
                 })
-            except Exception as e:
-                logger.debug(f"Error getting block {block_num}: {e}")
+            except Exception:
                 continue
     except Exception as e:
-        logger.error(f"Error getting gas history: {e}")
-
+        logger.error(f"Gas history sync error: {e}")
     return history
 
 
-async def get_network_metrics(web3: Web3) -> Dict[str, Any]:
-    """Get current Mantle network metrics"""
+def _fetch_network_metrics_sync(rpc_url: str) -> Dict[str, Any]:
+    """Synchronous: fetch 3 blocks for TPS. Run via to_thread."""
+    web3 = Web3(Web3.HTTPProvider(rpc_url, request_kwargs={"timeout": 5}))
     try:
         current_block = web3.eth.block_number
         gas_price = web3.eth.gas_price
-        gas_gwei = float(web3.from_wei(gas_price, "gwei"))
+        gas_gwei = round(float(web3.from_wei(gas_price, "gwei")), 4)
 
-        # Get last 10 blocks for TPS calculation
+        # Only 3 blocks for TPS — fast
         blocks_data = []
         total_txs = 0
-        time_span = 0
-
-        for i in range(10):
+        for i in range(3):
             try:
-                block = web3.eth.get_block(current_block - i)
-                blocks_data.append(block)
-                total_txs += len(block.transactions)
+                b = web3.eth.get_block(current_block - i)
+                blocks_data.append(b)
+                total_txs += len(b.transactions)
             except Exception:
                 continue
 
-        # Calculate TPS
+        tps = 0.0
+        block_time = 2.0
         if len(blocks_data) >= 2:
-            time_span = blocks_data[0].timestamp - blocks_data[-1].timestamp
-            tps = total_txs / time_span if time_span > 0 else 0
-        else:
-            tps = 0
+            span = blocks_data[0].timestamp - blocks_data[-1].timestamp
+            tps = round(total_txs / span, 2) if span > 0 else 0
+            block_time = round(span / len(blocks_data), 1)
 
-        # Get latest block details
-        latest_block = web3.eth.get_block(current_block)
-        utilization = (
-            latest_block.gasUsed / latest_block.gasLimit * 100
-            if latest_block.gasLimit else 0
-        )
+        latest = blocks_data[0] if blocks_data else None
+        utilization = round(latest.gasUsed / latest.gasLimit * 100, 1) if latest and latest.gasLimit else 0
 
-        # Determine congestion level
         if utilization > 80:
-            congestion = "HIGH"
-            congestion_color = "#ff4757"
+            congestion, color = "HIGH", "#ff4757"
         elif utilization > 50:
-            congestion = "MEDIUM"
-            congestion_color = "#ffa502"
+            congestion, color = "MEDIUM", "#ffa502"
         else:
-            congestion = "LOW"
-            congestion_color = "#00ff88"
+            congestion, color = "LOW", "#00ff88"
 
         return {
             "block_number": current_block,
-            "gas_price_gwei": round(gas_gwei, 4),
-            "gas_price_wei": gas_price,
-            "tps": round(tps, 2),
-            "block_time_sec": round(time_span / len(blocks_data), 1) if blocks_data else 2,
-            "latest_block_txs": len(latest_block.transactions),
-            "gas_utilization_pct": round(utilization, 1),
+            "gas_price_gwei": gas_gwei,
+            "tps": tps,
+            "block_time_sec": block_time,
+            "latest_block_txs": len(latest.transactions) if latest else 0,
+            "gas_utilization_pct": utilization,
             "congestion": congestion,
-            "congestion_color": congestion_color,
+            "congestion_color": color,
             "timestamp": datetime.utcnow().isoformat(),
         }
     except Exception as e:
-        logger.error(f"Error getting network metrics: {e}")
+        logger.error(f"Network metrics sync error: {e}")
         return {
-            "block_number": 0,
-            "gas_price_gwei": 0,
-            "tps": 0,
-            "congestion": "UNKNOWN",
-            "congestion_color": "#8892a6",
+            "block_number": 0, "gas_price_gwei": 0, "tps": 0,
+            "congestion": "UNKNOWN", "congestion_color": "#8892a6",
             "timestamp": datetime.utcnow().isoformat(),
         }
 
 
-async def get_bridge_activity(web3: Web3) -> Dict[str, Any]:
-    """Get Mantle bridge activity from recent blocks"""
+def _fetch_bridge_activity_sync(rpc_url: str, blocks: int = 50) -> Dict[str, Any]:
+    """Synchronous: scan last N blocks for bridge txs. Run via to_thread."""
+    web3 = Web3(Web3.HTTPProvider(rpc_url, request_kwargs={"timeout": 5}))
+    bridge_txs = []
+    total_eth = 0.0
     try:
         current_block = web3.eth.block_number
-        bridge_txs = []
-        total_bridged_eth = 0.0
-
-        # Scan last 200 blocks for bridge transactions
-        for block_num in range(current_block - 200, current_block):
+        # Sample every 3rd block for speed
+        for block_num in range(current_block - blocks, current_block, 3):
             try:
                 block = web3.eth.get_block(block_num, full_transactions=True)
                 for tx in block.transactions:
                     to = (tx.get("to") or "").lower()
                     if MANTLE_BRIDGE.lower() in to:
-                        value_eth = float(web3.from_wei(tx.get("value", 0), "ether"))
-                        total_bridged_eth += value_eth
+                        val = float(web3.from_wei(tx.get("value", 0), "ether"))
+                        total_eth += val
                         bridge_txs.append({
                             "tx_hash": tx["hash"].hex(),
                             "from": tx.get("from", ""),
-                            "value_eth": round(value_eth, 4),
-                            "value_usd": round(value_eth * 3000, 2),  # ETH price estimate
+                            "value_eth": round(val, 4),
+                            "value_usd": round(val * 3000, 2),
                             "block": block_num,
                             "timestamp": datetime.fromtimestamp(block.timestamp).isoformat(),
-                            "direction": "IN",  # Deposit to Mantle
                         })
             except Exception:
                 continue
-
-        return {
-            "bridge_txs_count": len(bridge_txs),
-            "total_bridged_eth": round(total_bridged_eth, 4),
-            "total_bridged_usd": round(total_bridged_eth * 3000, 2),
-            "recent_txs": bridge_txs[:10],
-            "timestamp": datetime.utcnow().isoformat(),
-        }
     except Exception as e:
-        logger.error(f"Error getting bridge activity: {e}")
-        return {
-            "bridge_txs_count": 0,
-            "total_bridged_eth": 0,
-            "total_bridged_usd": 0,
-            "recent_txs": [],
-        }
+        logger.error(f"Bridge sync error: {e}")
+    return {
+        "bridge_txs_count": len(bridge_txs),
+        "total_bridged_eth": round(total_eth, 4),
+        "total_bridged_usd": round(total_eth * 3000, 2),
+        "recent_txs": bridge_txs[:10],
+        "timestamp": datetime.utcnow().isoformat(),
+    }
 
 
-async def get_active_addresses(web3: Web3, blocks: int = 100) -> Dict[str, Any]:
-    """Count unique active addresses in recent blocks"""
+def _fetch_active_addresses_sync(rpc_url: str, blocks: int = 20) -> Dict[str, Any]:
+    """Synchronous: count unique addresses in last N blocks. Run via to_thread."""
+    web3 = Web3(Web3.HTTPProvider(rpc_url, request_kwargs={"timeout": 5}))
+    addresses: set = set()
+    total_txs = 0
     try:
         current_block = web3.eth.block_number
-        addresses = set()
-        total_txs = 0
-
         for block_num in range(current_block - blocks, current_block):
             try:
                 block = web3.eth.get_block(block_num, full_transactions=True)
@@ -175,13 +150,29 @@ async def get_active_addresses(web3: Web3, blocks: int = 100) -> Dict[str, Any]:
                     total_txs += 1
             except Exception:
                 continue
-
-        return {
-            "unique_addresses": len(addresses),
-            "total_transactions": total_txs,
-            "blocks_scanned": blocks,
-            "timestamp": datetime.utcnow().isoformat(),
-        }
     except Exception as e:
-        logger.error(f"Error getting active addresses: {e}")
-        return {"unique_addresses": 0, "total_transactions": 0}
+        logger.error(f"Active addresses sync error: {e}")
+    return {
+        "unique_addresses": len(addresses),
+        "total_transactions": total_txs,
+        "blocks_scanned": blocks,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+
+# ── Async wrappers ──────────────────────────────────────────────────────────
+
+async def get_gas_history(rpc_url: str, blocks: int = 10) -> List[Dict[str, Any]]:
+    return await asyncio.to_thread(_fetch_gas_history_sync, rpc_url, blocks)
+
+
+async def get_network_metrics(rpc_url: str) -> Dict[str, Any]:
+    return await asyncio.to_thread(_fetch_network_metrics_sync, rpc_url)
+
+
+async def get_bridge_activity(rpc_url: str, blocks: int = 50) -> Dict[str, Any]:
+    return await asyncio.to_thread(_fetch_bridge_activity_sync, rpc_url, blocks)
+
+
+async def get_active_addresses(rpc_url: str, blocks: int = 20) -> Dict[str, Any]:
+    return await asyncio.to_thread(_fetch_active_addresses_sync, rpc_url, blocks)
