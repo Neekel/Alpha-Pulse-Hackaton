@@ -98,20 +98,20 @@ export function TokenScanner() {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats - compact */}
       {stats && (
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="pro-card p-4">
-            <div className="metric-label mb-1">New Tokens / hr</div>
-            <div className="metric-value text-[#00d4ff]">{stats.new_tokens_1h}</div>
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="pro-card px-3 py-2">
+            <div className="text-[9px] text-[#8892a6] font-mono mb-0.5">New / hr</div>
+            <div className="text-base font-mono font-bold text-[#00d4ff]">{stats.new_tokens_1h}</div>
           </div>
-          <div className="pro-card p-4">
-            <div className="metric-label mb-1">Est. 24h Deployments</div>
-            <div className="metric-value text-[#ffa502]">{stats.new_tokens_24h}</div>
+          <div className="pro-card px-3 py-2">
+            <div className="text-[9px] text-[#8892a6] font-mono mb-0.5">Est. 24h</div>
+            <div className="text-base font-mono font-bold text-[#ffa502]">{stats.new_tokens_24h}</div>
           </div>
-          <div className="pro-card p-4">
-            <div className="metric-label mb-1">Scanned Now</div>
-            <div className="metric-value text-[#00ff88]">{tokens.length}</div>
+          <div className="pro-card px-3 py-2">
+            <div className="text-[9px] text-[#8892a6] font-mono mb-0.5">Scanned</div>
+            <div className="text-base font-mono font-bold text-[#00ff88]">{tokens.length}</div>
           </div>
         </div>
       )}

@@ -116,26 +116,37 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <div className="px-3 md:px-6 py-4 md:py-8 max-w-screen-2xl mx-auto">
+      <div className="px-3 md:px-6 py-3 md:py-4 max-w-screen-2xl mx-auto">
 
         {stats && <StatsPanel stats={stats} />}
 
-        <div className="mb-4 md:mb-8"><MantleStats /></div>
-        <div className="mb-4 md:mb-8"><ContractInfo /></div>
-        <div className="mb-4 md:mb-8"><AIAgentDashboard /></div>
-        <div className="mb-4 md:mb-8"><CopyTradingDashboard /></div>
-        <div className="mb-4 md:mb-8"><OnChainPulse /></div>
-        <div className="mb-4 md:mb-8"><DEXAnalytics /></div>
-        <div className="mb-4 md:mb-8"><TokenScanner /></div>
+        {/* Ticker bar: Mantle stats + Contracts in one line each */}
+        <MantleStats />
+        <ContractInfo />
 
-        {/* AI Predictions + Alerts: stack on mobile, side-by-side on desktop */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-8">
+        {/* AI Multi-Agent System */}
+        <div className="mb-3"><AIAgentDashboard /></div>
+
+        {/* Copy Trading Dashboard */}
+        <div className="mb-3"><CopyTradingDashboard /></div>
+
+        {/* On-Chain Pulse */}
+        <div className="mb-3"><OnChainPulse /></div>
+
+        {/* DEX Analytics */}
+        <div className="mb-3"><DEXAnalytics /></div>
+
+        {/* Token Scanner */}
+        <div className="mb-3"><TokenScanner /></div>
+
+        {/* AI Predictions + Alerts side by side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3">
           <AIPredictionsPro />
           <AlertFeedCompact anomalies={anomalies.slice(0, 10)} loading={loading} />
         </div>
 
-        <div className="mb-4 md:mb-8"><PredictionHistory /></div>
-        <div className="mb-4 md:mb-8"><ExecutiveDashboard /></div>
+        <div className="mb-3"><PredictionHistory /></div>
+        <div className="mb-3"><ExecutiveDashboard /></div>
       </div>
 
       {/* Footer */}

@@ -87,22 +87,20 @@ export function DEXAnalytics() {
         </div>
       </div>
 
-      {/* Summary row */}
+      {/* Summary row - compact */}
       {summary && (
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="pro-card p-4">
-            <div className="metric-label mb-1">24h Volume</div>
-            <div className="metric-value text-[#00d4ff]">{fmt(summary.total_volume_24h)}</div>
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="pro-card px-3 py-2">
+            <div className="text-[9px] text-[#8892a6] font-mono mb-0.5">24h Volume</div>
+            <div className="text-base font-mono font-bold text-[#00d4ff]">{fmt(summary.total_volume_24h)}</div>
           </div>
-          <div className="pro-card p-4">
-            <div className="metric-label mb-1">Total TVL</div>
-            <div className="metric-value text-[#00ff88]">{fmt(summary.total_tvl)}</div>
+          <div className="pro-card px-3 py-2">
+            <div className="text-[9px] text-[#8892a6] font-mono mb-0.5">Total TVL</div>
+            <div className="text-base font-mono font-bold text-[#00ff88]">{fmt(summary.total_tvl)}</div>
           </div>
-          <div className="pro-card p-4">
-            <div className="metric-label mb-1">24h Transactions</div>
-            <div className="metric-value text-[#ffa502]">
-              {summary.total_transactions_24h.toLocaleString()}
-            </div>
+          <div className="pro-card px-3 py-2">
+            <div className="text-[9px] text-[#8892a6] font-mono mb-0.5">24h Transactions</div>
+            <div className="text-base font-mono font-bold text-[#ffa502]">{summary.total_transactions_24h.toLocaleString()}</div>
           </div>
         </div>
       )}

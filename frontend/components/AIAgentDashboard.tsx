@@ -120,40 +120,24 @@ export function AIAgentDashboard() {
         </button>
       </div>
 
-      {/* Agent Status Grid */}
-      <div className="grid md:grid-cols-2 gap-4 mb-6">
+      {/* Agent Status - compact single row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
         {agents.map((agent, idx) => (
-          <motion.div
+          <div
             key={agent.name}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.1 }}
-            className="pro-card-hover p-4"
+            className="pro-card-hover px-3 py-2 flex items-center gap-2"
           >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-[#00d4ff] rounded-sm flex items-center justify-center font-mono text-sm font-bold text-[#0a0e27]">
-                  {agent.name.charAt(0)}
-                </div>
-                <div>
-                  <h3 className="text-sm font-mono font-bold text-white">
-                    {agent.name}
-                  </h3>
-                  <p className="text-xs text-[#8892a6] font-mono mt-1">
-                    {agent.role}
-                  </p>
-                </div>
-              </div>
-              <div className={`text-lg font-mono ${getStatusColor(agent.status)}`}>
-                {getStatusIcon(agent.status)}
-              </div>
+            <div className="w-6 h-6 bg-[#00d4ff] rounded-sm flex items-center justify-center font-mono text-xs font-bold text-[#0a0e27] flex-shrink-0">
+              {agent.name.charAt(0)}
             </div>
-            {agent.last_analysis && (
-              <div className="text-xs text-[#8892a6] font-mono">
-                Last: {new Date(agent.last_analysis).toLocaleTimeString()}
-              </div>
-            )}
-          </motion.div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-mono font-bold text-white truncate">{agent.name}</div>
+              <div className="text-[10px] font-mono text-[#8892a6] truncate">{agent.role.split(" ").slice(0, 3).join(" ")}</div>
+            </div>
+            <div className={`text-sm font-mono flex-shrink-0 ${getStatusColor(agent.status)}`}>
+              {getStatusIcon(agent.status)}
+            </div>
+          </div>
         ))}
       </div>
 
@@ -261,9 +245,9 @@ export function AIAgentDashboard() {
       )}
 
       {/* Info Banner */}
-      <div className="mt-6 p-4 bg-[#1e2a47]/20 border border-[#1e2a47] rounded-sm">
-        <div className="text-xs text-[#8892a6] font-mono">
-          <span className="text-[#00d4ff] font-bold">How it works:</span> Each AI agent specializes in a different aspect (whales, DEX, risk, sentiment). They analyze data in parallel, then the Orchestrator synthesizes their insights into a final recommendation.
+      <div className="mt-4 px-3 py-2 bg-[#1e2a47]/20 border border-[#1e2a47] rounded-sm">
+        <div className="text-[10px] text-[#8892a6] font-mono">
+          <span className="text-[#00d4ff] font-bold">How it works:</span> 4 specialized agents (whales, DEX, risk, sentiment) analyze data in parallel → Orchestrator synthesizes final recommendation.
         </div>
       </div>
     </div>

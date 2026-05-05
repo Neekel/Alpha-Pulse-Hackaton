@@ -120,140 +120,81 @@ export function OnChainPulse() {
         </div>
       ) : (
         <>
-          {/* Network Metrics Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          {/* Network Metrics - compact single row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
             {network && (
               <>
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="pro-card p-4"
-                >
-                  <div className="metric-label mb-1">Gas Price</div>
-                  <div className="metric-value text-[#00d4ff]">
-                    {network.gas_price_gwei} <span className="text-xs text-[#8892a6]">Gwei</span>
+                <div className="pro-card px-3 py-2">
+                  <div className="text-[9px] text-[#8892a6] font-mono mb-1">Gas Price</div>
+                  <div className="text-base font-mono font-bold text-[#00d4ff]">{network.gas_price_gwei} <span className="text-[10px] text-[#8892a6]">Gwei</span></div>
+                  <div className="mt-1"><GasSparkline data={gasHistory} /></div>
+                </div>
+                <div className="pro-card px-3 py-2">
+                  <div className="text-[9px] text-[#8892a6] font-mono mb-1">TPS</div>
+                  <div className="text-base font-mono font-bold text-[#00ff88]">{network.tps}</div>
+                  <div className="text-[10px] text-[#8892a6] font-mono">Block: {network.block_time_sec}s</div>
+                </div>
+                <div className="pro-card px-3 py-2">
+                  <div className="text-[9px] text-[#8892a6] font-mono mb-1">Network Load</div>
+                  <div className="text-base font-mono font-bold" style={{ color: network.congestion_color }}>{network.congestion}</div>
+                  <div className="mt-1 h-1 bg-[#1e2a47] rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${network.gas_utilization_pct}%`, backgroundColor: network.congestion_color }} />
                   </div>
-                  <div className="mt-2">
-                    <GasSparkline data={gasHistory} />
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.05 }}
-                  className="pro-card p-4"
-                >
-                  <div className="metric-label mb-1">TPS</div>
-                  <div className="metric-value text-[#00ff88]">{network.tps}</div>
-                  <div className="text-xs text-[#8892a6] font-mono mt-1">
-                    Block time: {network.block_time_sec}s
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="pro-card p-4"
-                >
-                  <div className="metric-label mb-1">Network Load</div>
-                  <div
-                    className="metric-value font-bold"
-                    style={{ color: network.congestion_color }}
-                  >
-                    {network.congestion}
-                  </div>
-                  <div className="mt-2 h-1.5 bg-[#1e2a47] rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{
-                        width: `${network.gas_utilization_pct}%`,
-                        backgroundColor: network.congestion_color,
-                      }}
-                    />
-                  </div>
-                  <div className="text-xs text-[#8892a6] font-mono mt-1">
-                    {network.gas_utilization_pct}% utilized
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 }}
-                  className="pro-card p-4"
-                >
-                  <div className="metric-label mb-1">Latest Block</div>
-                  <div className="metric-value text-[#ffa502]">
-                    #{network.block_number.toLocaleString()}
-                  </div>
-                  <div className="text-xs text-[#8892a6] font-mono mt-1">
-                    {network.latest_block_txs} txs
-                  </div>
-                </motion.div>
+                  <div className="text-[10px] text-[#8892a6] font-mono mt-0.5">{network.gas_utilization_pct}%</div>
+                </div>
+                <div className="pro-card px-3 py-2">
+                  <div className="text-[9px] text-[#8892a6] font-mono mb-1">Latest Block</div>
+                  <div className="text-base font-mono font-bold text-[#ffa502]">#{network.block_number.toLocaleString()}</div>
+                  <div className="text-[10px] text-[#8892a6] font-mono">{network.latest_block_txs} txs</div>
+                </div>
               </>
             )}
           </div>
 
-          {/* Bridge + Addresses row */}
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
-            {/* Bridge Activity */}
-            <div className="pro-card p-4">
-              <div className="text-xs font-mono font-bold text-white uppercase tracking-wider mb-3">
-                Bridge Activity
+      {/* Bridge + Addresses row */}
+      <div className="grid md:grid-cols-2 gap-3 mb-4">
+        {/* Bridge Activity */}
+        <div className="pro-card p-3">
+          <div className="text-[10px] font-mono font-bold text-white uppercase tracking-wider mb-2">Bridge Activity</div>
+          {bridge ? (
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <div className="text-[9px] text-[#8892a6] font-mono">Deposits</div>
+                <div className="text-sm font-mono font-bold text-[#00d4ff]">{bridge.bridge_txs_count}</div>
               </div>
-              {bridge ? (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs font-mono">
-                    <span className="text-[#8892a6]">Deposits (recent)</span>
-                    <span className="text-[#00d4ff]">{bridge.bridge_txs_count} txs</span>
-                  </div>
-                  <div className="flex justify-between text-xs font-mono">
-                    <span className="text-[#8892a6]">Total Bridged ETH</span>
-                    <span className="text-[#00ff88]">{bridge.total_bridged_eth} ETH</span>
-                  </div>
-                  <div className="flex justify-between text-xs font-mono">
-                    <span className="text-[#8892a6]">Total Bridged USD</span>
-                    <span className="text-[#ffa502]">
-                      ${bridge.total_bridged_usd.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-[#8892a6] text-xs font-mono">Loading...</div>
-              )}
+              <div>
+                <div className="text-[9px] text-[#8892a6] font-mono">ETH Bridged</div>
+                <div className="text-sm font-mono font-bold text-[#00ff88]">{bridge.total_bridged_eth}</div>
+              </div>
+              <div>
+                <div className="text-[9px] text-[#8892a6] font-mono">USD Value</div>
+                <div className="text-sm font-mono font-bold text-[#ffa502]">${bridge.total_bridged_usd.toLocaleString()}</div>
+              </div>
             </div>
+          ) : <div className="text-[10px] text-[#8892a6] font-mono">Loading...</div>}
+        </div>
 
-            {/* Active Addresses */}
-            <div className="pro-card p-4">
-              <div className="text-xs font-mono font-bold text-white uppercase tracking-wider mb-3">
-                Active Addresses
+        {/* Active Addresses */}
+        <div className="pro-card p-3">
+          <div className="text-[10px] font-mono font-bold text-white uppercase tracking-wider mb-2">Active Addresses</div>
+          {addresses ? (
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <div className="text-[9px] text-[#8892a6] font-mono">Unique Addr</div>
+                <div className="text-sm font-mono font-bold text-[#00d4ff]">{addresses.unique_addresses.toLocaleString()}</div>
               </div>
-              {addresses ? (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs font-mono">
-                    <span className="text-[#8892a6]">Unique Addresses</span>
-                    <span className="text-[#00d4ff]">
-                      {addresses.unique_addresses.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-xs font-mono">
-                    <span className="text-[#8892a6]">Total Transactions</span>
-                    <span className="text-[#00ff88]">
-                      {addresses.total_transactions.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-xs font-mono">
-                    <span className="text-[#8892a6]">Blocks Scanned</span>
-                    <span className="text-[#8892a6]">{addresses.blocks_scanned}</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-[#8892a6] text-xs font-mono">Loading...</div>
-              )}
+              <div>
+                <div className="text-[9px] text-[#8892a6] font-mono">Total Txs</div>
+                <div className="text-sm font-mono font-bold text-[#00ff88]">{addresses.total_transactions.toLocaleString()}</div>
+              </div>
+              <div>
+                <div className="text-[9px] text-[#8892a6] font-mono">Blocks</div>
+                <div className="text-sm font-mono font-bold text-[#8892a6]">{addresses.blocks_scanned}</div>
+              </div>
             </div>
-          </div>
+          ) : <div className="text-[10px] text-[#8892a6] font-mono">Loading...</div>}
+        </div>
+      </div>
 
           {/* Gas History Table */}
           {gasHistory.length > 0 && (
