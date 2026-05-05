@@ -21,6 +21,20 @@ from dex_analytics import get_dex_summary, get_large_swaps
 from token_scanner import get_new_tokens, get_token_stats
 from onchain_pulse import get_gas_history, get_network_metrics, get_bridge_activity, get_active_addresses
 
+# Simple in-memory cache: {key: (data, expires_at)}
+import time
+_cache: dict = {}
+
+def _cached(key: str, ttl: int, fn):
+    """Return cached value or call fn() and cache result"""
+    now = time.time()
+    if key in _cache and _cache[key][1] > now:
+        return _cache[key][0]
+    return None  # caller must refresh
+
+def _set_cache(key: str, data, ttl: int):
+    _cache[key] = (data, time.time() + ttl)
+
 # Configure logging
 logger.remove()
 logger.add(sys.stderr, level="INFO")
@@ -605,9 +619,13 @@ async def get_mantle_stats():
 @app.get("/api/dex/summary")
 async def dex_summary():
     """DEX volumes and top pairs from Mantle subgraphs"""
+    cached = _cached("dex_summary", 120, None)
+    if cached:
+        return cached
     try:
         web3 = Web3(Web3.HTTPProvider(settings.mantle_rpc_url))
         data = await get_dex_summary(web3)
+        _set_cache("dex_summary", data, 120)
         return data
     except Exception as e:
         logger.error(f"DEX summary error: {e}")
@@ -617,10 +635,15 @@ async def dex_summary():
 @app.get("/api/dex/large-swaps")
 async def dex_large_swaps(min_usd: float = 10000):
     """Large swaps detected on Mantle (>$10K by default)"""
+    cached = _cached("large_swaps", 60, None)
+    if cached:
+        return cached
     try:
         web3 = Web3(Web3.HTTPProvider(settings.mantle_rpc_url))
         swaps = await get_large_swaps(web3, min_usd)
-        return {"swaps": swaps, "count": len(swaps), "timestamp": datetime.utcnow().isoformat()}
+        result = {"swaps": swaps, "count": len(swaps), "timestamp": datetime.utcnow().isoformat()}
+        _set_cache("large_swaps", result, 60)
+        return result
     except Exception as e:
         logger.error(f"Large swaps error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -631,16 +654,21 @@ async def dex_large_swaps(min_usd: float = 10000):
 @app.get("/api/tokens/new")
 async def new_tokens(blocks_back: int = 300):
     """Newly deployed ERC20 tokens on Mantle"""
+    cached = _cached("new_tokens", 120, None)
+    if cached:
+        return cached
     try:
         web3 = Web3(Web3.HTTPProvider(settings.mantle_rpc_url))
         tokens = await get_new_tokens(web3, blocks_back)
         stats = await get_token_stats(web3)
-        return {
+        result = {
             "tokens": tokens,
             "count": len(tokens),
             "stats": stats,
             "timestamp": datetime.utcnow().isoformat(),
         }
+        _set_cache("new_tokens", result, 120)
+        return result
     except Exception as e:
         logger.error(f"New tokens error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

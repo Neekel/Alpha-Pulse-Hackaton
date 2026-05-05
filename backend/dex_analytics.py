@@ -2,18 +2,16 @@
 import asyncio
 import aiohttp
 from web3 import Web3
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import List, Dict, Any
 from loguru import logger
 
-# FusionX V3 Subgraph on Mantle
-FUSIONX_SUBGRAPH = "https://api.goldsky.com/api/public/project_clnbo3e3c16lj33xva5r2ckwz/subgraphs/fusionx-v3/prod/gn"
+# Official FusionX subgraphs on Mantle (from docs.fusionx.finance)
+FUSIONX_V3_SUBGRAPH = "https://subgraph-api.mantle.xyz/subgraphs/name/fusionx/exchange-v3"
+FUSIONX_V2_SUBGRAPH = "https://subgraph-api.mantle.xyz/subgraphs/name/fusionx/exchange"
 
-# Merchant Moe Subgraph on Mantle
-MERCHANT_MOE_SUBGRAPH = "https://api.goldsky.com/api/public/project_clnbo3e3c16lj33xva5r2ckwz/subgraphs/merchantmoe/prod/gn"
-
-# Agni Finance Subgraph
-AGNI_SUBGRAPH = "https://api.goldsky.com/api/public/project_clnbo3e3c16lj33xva5r2ckwz/subgraphs/agni-finance/prod/gn"
+# Merchant Moe - try mantle subgraph API
+MERCHANT_MOE_SUBGRAPH = "https://subgraph-api.mantle.xyz/subgraphs/name/merchantmoe/exchange"
 
 
 async def _query_subgraph(url: str, query: str) -> Dict:
@@ -33,35 +31,45 @@ async def _query_subgraph(url: str, query: str) -> Dict:
 
 
 async def get_dex_volumes() -> List[Dict[str, Any]]:
-    """Get 24h trading volumes from Mantle DEXes via subgraphs"""
-    query = """
+    """Get trading volumes from Mantle DEXes via official subgraphs"""
+
+    # FusionX V3 query
+    v3_query = """
     {
-      factories(first: 1) {
-        totalVolumeUSD
-        totalFeesUSD
-        txCount
-        poolCount
-      }
       pools(first: 10, orderBy: volumeUSD, orderDirection: desc,
-            where: {volumeUSD_gt: "1000"}) {
+            where: {volumeUSD_gt: "100"}) {
         id
         token0 { symbol }
         token1 { symbol }
         volumeUSD
         feesUSD
         txCount
-        liquidity
         totalValueLockedUSD
+      }
+    }
+    """
+
+    # FusionX V2 query
+    v2_query = """
+    {
+      pairs(first: 10, orderBy: volumeUSD, orderDirection: desc,
+            where: {volumeUSD_gt: "100"}) {
+        id
+        token0 { symbol }
+        token1 { symbol }
+        volumeUSD
+        txCount
+        reserveUSD
       }
     }
     """
 
     results = []
 
-    # Query FusionX
-    data = await _query_subgraph(FUSIONX_SUBGRAPH, query)
-    if data.get("data", {}).get("pools"):
-        for pool in data["data"]["pools"][:5]:
+    # Query FusionX V3
+    v3_data = await _query_subgraph(FUSIONX_V3_SUBGRAPH, v3_query)
+    if v3_data.get("data", {}).get("pools"):
+        for pool in v3_data["data"]["pools"][:5]:
             results.append({
                 "dex": "FusionX V3",
                 "pair": f"{pool['token0']['symbol']}/{pool['token1']['symbol']}",
@@ -72,34 +80,46 @@ async def get_dex_volumes() -> List[Dict[str, Any]]:
                 "pool_address": pool["id"],
             })
 
+    # Query FusionX V2
+    v2_data = await _query_subgraph(FUSIONX_V2_SUBGRAPH, v2_query)
+    if v2_data.get("data", {}).get("pairs"):
+        for pair in v2_data["data"]["pairs"][:3]:
+            results.append({
+                "dex": "FusionX V2",
+                "pair": f"{pair['token0']['symbol']}/{pair['token1']['symbol']}",
+                "volume_24h": float(pair.get("volumeUSD", 0)),
+                "fees_24h": float(pair.get("volumeUSD", 0)) * 0.003,  # 0.3% fee
+                "tx_count": int(pair.get("txCount", 0)),
+                "tvl": float(pair.get("reserveUSD", 0)),
+                "pool_address": pair["id"],
+            })
+
     # Query Merchant Moe
     moe_query = """
     {
-      lbpairs(first: 5, orderBy: volumeUSD, orderDirection: desc) {
+      pairs(first: 5, orderBy: volumeUSD, orderDirection: desc) {
         id
-        tokenX { symbol }
-        tokenY { symbol }
+        token0 { symbol }
+        token1 { symbol }
         volumeUSD
-        feesUSD
         txCount
-        totalValueLockedUSD
+        reserveUSD
       }
     }
     """
     moe_data = await _query_subgraph(MERCHANT_MOE_SUBGRAPH, moe_query)
-    if moe_data.get("data", {}).get("lbpairs"):
-        for pool in moe_data["data"]["lbpairs"][:3]:
+    if moe_data.get("data", {}).get("pairs"):
+        for pair in moe_data["data"]["pairs"][:3]:
             results.append({
                 "dex": "Merchant Moe",
-                "pair": f"{pool['tokenX']['symbol']}/{pool['tokenY']['symbol']}",
-                "volume_24h": float(pool.get("volumeUSD", 0)),
-                "fees_24h": float(pool.get("feesUSD", 0)),
-                "tx_count": int(pool.get("txCount", 0)),
-                "tvl": float(pool.get("totalValueLockedUSD", 0)),
-                "pool_address": pool["id"],
+                "pair": f"{pair['token0']['symbol']}/{pair['token1']['symbol']}",
+                "volume_24h": float(pair.get("volumeUSD", 0)),
+                "fees_24h": float(pair.get("volumeUSD", 0)) * 0.003,
+                "tx_count": int(pair.get("txCount", 0)),
+                "tvl": float(pair.get("reserveUSD", 0)),
+                "pool_address": pair["id"],
             })
 
-    # Sort by volume
     results.sort(key=lambda x: x["volume_24h"], reverse=True)
     return results[:10]
 
