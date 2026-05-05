@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 
 interface DEXPair {
@@ -17,7 +16,6 @@ interface DEXPair {
 interface LargeSwap {
   tx_hash: string;
   from: string;
-  to: string;
   value_mnt: number;
   value_usd: number;
   block: number;
@@ -26,10 +24,16 @@ interface LargeSwap {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-const fmt = (n: number) => {
+const fmtUSD = (n: number) => {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
   if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}K`;
   return `$${n.toFixed(0)}`;
+};
+
+const dexBadgeColor = (dex: string) => {
+  if (dex.includes("FusionX")) return { bg: "bg-[#00d4ff]/20", text: "text-[#00d4ff]", border: "border-[#00d4ff]/40" };
+  if (dex.includes("Merchant")) return { bg: "bg-[#a855f7]/20", text: "text-[#a855f7]", border: "border-[#a855f7]/40" };
+  return { bg: "bg-[#ffa502]/20", text: "text-[#ffa502]", border: "border-[#ffa502]/40" };
 };
 
 export function DEXAnalytics() {
@@ -51,10 +55,7 @@ export function DEXAnalytics() {
         fetch(`${API_URL}/api/dex/large-swaps?min_usd=10000`),
       ]);
       if (sumRes.ok) setSummary(await sumRes.json());
-      if (swapRes.ok) {
-        const d = await swapRes.json();
-        setSwaps(d.swaps || []);
-      }
+      if (swapRes.ok) { const d = await swapRes.json(); setSwaps(d.swaps || []); }
     } catch (e) {
       console.error("DEX fetch error:", e);
     } finally {
@@ -62,59 +63,41 @@ export function DEXAnalytics() {
     }
   };
 
-  const dexColor = (dex: string) => {
-    if (dex.includes("FusionX")) return "text-[#00d4ff]";
-    if (dex.includes("Merchant")) return "text-[#a855f7]";
-    if (dex.includes("Agni")) return "text-[#ffa502]";
-    return "text-[#8892a6]";
-  };
-
   return (
-    <div className="pro-card p-6">
+    <div className="pro-card p-5">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#1e2a47]">
+      <div className="flex items-center justify-between mb-5 pb-4 border-b border-[#1e2a47]">
         <div>
-          <h2 className="text-lg font-mono font-bold text-white uppercase tracking-wider">
-            DEX Analytics
-          </h2>
-          <p className="text-xs text-[#8892a6] font-mono mt-1">
-            FusionX · Merchant Moe · Agni Finance — Mantle Mainnet
-          </p>
+          <h2 className="text-xl font-mono font-bold text-white uppercase tracking-wider">DEX Analytics</h2>
+          <p className="text-sm text-[#8892a6] font-mono mt-1">FusionX · Merchant Moe · Agni Finance — Mantle Mainnet</p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-[#00ff88] rounded-full animate-pulse" />
-          <span className="text-xs font-mono text-[#00ff88]">LIVE</span>
+          <div className="w-2.5 h-2.5 bg-[#00ff88] rounded-full animate-pulse" />
+          <span className="text-sm font-mono text-[#00ff88] font-bold">LIVE</span>
         </div>
       </div>
 
-      {/* Summary row - compact */}
-      {summary && (
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="pro-card px-3 py-2">
-            <div className="text-[9px] text-[#8892a6] font-mono mb-0.5">24h Volume</div>
-            <div className="text-base font-mono font-bold text-[#00d4ff]">{fmt(summary.total_volume_24h)}</div>
+      {/* Summary — 3 big metric cards */}
+      <div className="grid grid-cols-3 gap-3 mb-5">
+        {[
+          { label: "24h Volume", value: summary ? fmtUSD(summary.total_volume_24h) : "—", color: "text-[#00d4ff]" },
+          { label: "Total TVL", value: summary ? fmtUSD(summary.total_tvl) : "—", color: "text-[#00ff88]" },
+          { label: "24h Transactions", value: summary ? summary.total_transactions_24h.toLocaleString() : "—", color: "text-[#ffa502]" },
+        ].map(item => (
+          <div key={item.label} className="pro-card p-4">
+            <div className="text-xs text-[#8892a6] font-mono uppercase mb-2">{item.label}</div>
+            <div className={`text-3xl font-mono font-bold tabular-nums ${item.color}`}>{item.value}</div>
           </div>
-          <div className="pro-card px-3 py-2">
-            <div className="text-[9px] text-[#8892a6] font-mono mb-0.5">Total TVL</div>
-            <div className="text-base font-mono font-bold text-[#00ff88]">{fmt(summary.total_tvl)}</div>
-          </div>
-          <div className="pro-card px-3 py-2">
-            <div className="text-[9px] text-[#8892a6] font-mono mb-0.5">24h Transactions</div>
-            <div className="text-base font-mono font-bold text-[#ffa502]">{summary.total_transactions_24h.toLocaleString()}</div>
-          </div>
-        </div>
-      )}
+        ))}
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-4">
         {(["pairs", "swaps"] as const).map(t => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-4 py-1.5 text-xs font-mono rounded-sm transition-colors ${
-              tab === t ? "bg-[#00d4ff] text-[#0a0e27]" : "bg-[#1e2a47] text-[#8892a6] hover:bg-[#2a3f5f]"
-            }`}
-          >
+          <button key={t} onClick={() => setTab(t)}
+            className={`px-4 py-2 text-sm font-mono rounded-sm transition-colors ${
+              tab === t ? "bg-[#00d4ff] text-[#0a0e27] font-bold" : "bg-[#1e2a47] text-[#8892a6] hover:bg-[#2a3f5f]"
+            }`}>
             {t === "pairs" ? "Top Pairs" : `Large Swaps (${swaps.length})`}
           </button>
         ))}
@@ -122,102 +105,83 @@ export function DEXAnalytics() {
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="text-[#00d4ff] font-mono text-sm">Loading DEX data...</div>
+          <div className="text-[#00d4ff] font-mono">Loading DEX data...</div>
         </div>
       ) : tab === "pairs" ? (
-        <div className="overflow-x-auto">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>DEX</th>
-                <th>Pair</th>
-                <th>24h Volume</th>
-                <th>24h Fees</th>
-                <th>TVL</th>
-                <th>Txs</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(summary?.top_pairs || []).map((pair: DEXPair, i: number) => (
-                <motion.tr
-                  key={i}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: i * 0.05 }}
-                >
-                  <td>
-                    <span className={`text-xs font-bold ${dexColor(pair.dex)}`}>
-                      {pair.dex}
-                    </span>
-                  </td>
-                  <td className="text-white font-bold">{pair.pair}</td>
-                  <td className="text-[#00d4ff] tabular-nums">{fmt(pair.volume_24h)}</td>
-                  <td className="text-[#00ff88] tabular-nums">{fmt(pair.fees_24h)}</td>
-                  <td className="text-[#ffa502] tabular-nums">{fmt(pair.tvl)}</td>
-                  <td className="text-[#8892a6] tabular-nums">{pair.tx_count.toLocaleString()}</td>
-                </motion.tr>
-              ))}
-              {(!summary?.top_pairs || summary.top_pairs.length === 0) && (
-                <tr>
-                  <td colSpan={6} className="text-center text-[#8892a6] py-8">
-                    No DEX data available
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="space-y-2">
+          {(summary?.top_pairs || []).length === 0 ? (
+            <div className="text-center py-8 text-[#8892a6] font-mono">No DEX data available</div>
+          ) : (
+            (summary?.top_pairs || []).map((pair: DEXPair, i: number) => {
+              const badge = dexBadgeColor(pair.dex);
+              return (
+                <div key={i} className="pro-card-hover p-4 flex items-center gap-4">
+                  {/* Rank */}
+                  <div className="text-2xl font-mono font-bold text-[#1e2a47] w-8 flex-shrink-0">
+                    {i + 1}
+                  </div>
+                  {/* DEX badge */}
+                  <div className={`px-2 py-1 rounded-sm border text-xs font-mono font-bold flex-shrink-0 ${badge.bg} ${badge.text} ${badge.border}`}>
+                    {pair.dex.split(" ")[0]}
+                  </div>
+                  {/* Pair name */}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-lg font-mono font-bold text-white">{pair.pair}</div>
+                    <a href={`https://mantlescan.xyz/address/${pair.pool_address}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="text-xs text-[#8892a6] font-mono hover:text-[#00d4ff]">
+                      {pair.pool_address.slice(0, 10)}...
+                    </a>
+                  </div>
+                  {/* Metrics */}
+                  <div className="grid grid-cols-3 gap-6 flex-shrink-0">
+                    <div className="text-right">
+                      <div className="text-xs text-[#8892a6] font-mono">Volume</div>
+                      <div className="text-base font-mono font-bold text-[#00d4ff] tabular-nums">{fmtUSD(pair.volume_24h)}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-[#8892a6] font-mono">TVL</div>
+                      <div className="text-base font-mono font-bold text-[#00ff88] tabular-nums">{fmtUSD(pair.tvl)}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-[#8892a6] font-mono">Txs</div>
+                      <div className="text-base font-mono font-bold text-[#ffa502] tabular-nums">{pair.tx_count.toLocaleString()}</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Tx Hash</th>
-                <th>From</th>
-                <th>Value MNT</th>
-                <th>Value USD</th>
-                <th>Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {swaps.map((swap, i) => (
-                <motion.tr
-                  key={i}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: i * 0.04 }}
-                >
-                  <td>
-                    <a
-                      href={`https://mantlescan.xyz/tx/${swap.tx_hash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#00d4ff] hover:text-[#00b8e6] font-mono text-xs"
-                    >
-                      {swap.tx_hash.slice(0, 10)}...
-                    </a>
-                  </td>
-                  <td>
-                    <code className="text-xs text-[#8892a6]">
-                      {swap.from.slice(0, 8)}...{swap.from.slice(-4)}
-                    </code>
-                  </td>
-                  <td className="text-white tabular-nums">{swap.value_mnt.toLocaleString()}</td>
-                  <td className="text-[#00ff88] tabular-nums font-bold">{fmt(swap.value_usd)}</td>
-                  <td className="text-[#8892a6] text-xs">
+        <div className="space-y-2">
+          {swaps.length === 0 ? (
+            <div className="text-center py-8 text-[#8892a6] font-mono">No large swaps detected</div>
+          ) : (
+            swaps.map((swap, i) => (
+              <div key={i} className="pro-card-hover p-4 flex items-center gap-4">
+                <div className="w-10 h-10 bg-[#00ff88]/20 border border-[#00ff88]/40 rounded-sm flex items-center justify-center flex-shrink-0">
+                  <span className="text-[#00ff88] font-mono font-bold text-sm">↑</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <a href={`https://mantlescan.xyz/tx/${swap.tx_hash}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="text-sm font-mono text-[#00d4ff] hover:text-[#00b8e6]">
+                    {swap.tx_hash.slice(0, 14)}...
+                  </a>
+                  <div className="text-xs text-[#8892a6] font-mono mt-0.5">
+                    From: {swap.from.slice(0, 8)}...{swap.from.slice(-4)}
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <div className="text-xl font-mono font-bold text-[#00ff88] tabular-nums">{fmtUSD(swap.value_usd)}</div>
+                  <div className="text-xs text-[#8892a6] font-mono">
                     {formatDistanceToNow(new Date(swap.timestamp), { addSuffix: true })}
-                  </td>
-                </motion.tr>
-              ))}
-              {swaps.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="text-center text-[#8892a6] py-8">
-                    No large swaps detected
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
     </div>

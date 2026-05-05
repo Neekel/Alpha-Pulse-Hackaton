@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -33,6 +32,90 @@ interface BridgeData {
   recent_txs: any[];
 }
 
+// Heatmap color: green → yellow → orange → red based on utilization
+function heatColor(pct: number): string {
+  if (pct >= 80) return "#ff4757";
+  if (pct >= 60) return "#ff6b35";
+  if (pct >= 40) return "#ffa502";
+  if (pct >= 20) return "#eccc68";
+  return "#00ff88";
+}
+
+// Gas Heatmap — 7×24 grid of colored cells like Etherscan
+function GasHeatmap({ data }: { data: GasPoint[] }) {
+  if (data.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-24 text-[#8892a6] font-mono text-sm">
+        Collecting block data...
+      </div>
+    );
+  }
+
+  const maxUtil = Math.max(...data.map(d => d.utilization_pct), 1);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-mono font-bold text-white uppercase tracking-wider">
+          Gas Utilization Heatmap
+        </span>
+        <div className="flex items-center gap-2 text-xs font-mono text-[#8892a6]">
+          <span className="flex items-center gap-1">
+            <span className="w-3 h-3 rounded-sm inline-block" style={{ background: "#00ff88" }} /> Low
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-3 h-3 rounded-sm inline-block" style={{ background: "#ffa502" }} /> Med
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-3 h-3 rounded-sm inline-block" style={{ background: "#ff4757" }} /> High
+          </span>
+        </div>
+      </div>
+
+      {/* Heatmap grid */}
+      <div className="flex flex-wrap gap-1">
+        {data.map((point, i) => {
+          const color = heatColor(point.utilization_pct);
+          const opacity = 0.3 + (point.utilization_pct / maxUtil) * 0.7;
+          return (
+            <div
+              key={i}
+              className="relative group"
+              style={{ width: 28, height: 28 }}
+            >
+              <div
+                className="w-full h-full rounded-sm cursor-pointer transition-transform hover:scale-110"
+                style={{ backgroundColor: color, opacity }}
+              />
+              {/* Tooltip */}
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 pointer-events-none">
+                <div className="bg-[#0a0e27] border border-[#1e2a47] rounded-sm px-2 py-1 text-[10px] font-mono whitespace-nowrap">
+                  <div className="text-white">Block #{point.block.toLocaleString()}</div>
+                  <div style={{ color }}>{point.utilization_pct}% utilized</div>
+                  <div className="text-[#8892a6]">{point.tx_count} txs</div>
+                  <div className="text-[#00d4ff]">{point.gas_price_gwei} Gwei</div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Stats row below heatmap */}
+      <div className="flex items-center justify-between mt-3 text-xs font-mono text-[#8892a6]">
+        <span>← Older blocks</span>
+        <span>
+          Avg utilization:{" "}
+          <span className="text-white font-bold">
+            {Math.round(data.reduce((s, d) => s + d.utilization_pct, 0) / data.length)}%
+          </span>
+        </span>
+        <span>Latest →</span>
+      </div>
+    </div>
+  );
+}
+
 export function OnChainPulse() {
   const [network, setNetwork] = useState<NetworkMetrics | null>(null);
   const [gasHistory, setGasHistory] = useState<GasPoint[]>([]);
@@ -50,15 +133,12 @@ export function OnChainPulse() {
     try {
       const [netRes, gasRes, bridgeRes, addrRes] = await Promise.all([
         fetch(`${API_URL}/api/pulse/network`),
-        fetch(`${API_URL}/api/pulse/gas-history?blocks=20`),
+        fetch(`${API_URL}/api/pulse/gas-history?blocks=10`),
         fetch(`${API_URL}/api/pulse/bridge`),
-        fetch(`${API_URL}/api/pulse/addresses?blocks=100`),
+        fetch(`${API_URL}/api/pulse/addresses?blocks=20`),
       ]);
       if (netRes.ok) setNetwork(await netRes.json());
-      if (gasRes.ok) {
-        const d = await gasRes.json();
-        setGasHistory(d.history || []);
-      }
+      if (gasRes.ok) { const d = await gasRes.json(); setGasHistory(d.history || []); }
       if (bridgeRes.ok) setBridge(await bridgeRes.json());
       if (addrRes.ok) setAddresses(await addrRes.json());
     } catch (e) {
@@ -68,183 +148,120 @@ export function OnChainPulse() {
     }
   };
 
-  // Mini sparkline for gas history
-  const GasSparkline = ({ data }: { data: GasPoint[] }) => {
-    if (data.length < 2) return null;
-    const values = data.map(d => d.gas_price_gwei);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const range = max - min || 1;
-    const w = 120;
-    const h = 32;
-    const pts = values.map((v, i) => {
-      const x = (i / (values.length - 1)) * w;
-      const y = h - ((v - min) / range) * h;
-      return `${x},${y}`;
-    }).join(" ");
-
-    return (
-      <svg width={w} height={h} className="overflow-visible">
-        <polyline
-          points={pts}
-          fill="none"
-          stroke="#00d4ff"
-          strokeWidth="1.5"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  };
-
   return (
-    <div className="pro-card p-6">
+    <div className="pro-card p-5">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#1e2a47]">
+      <div className="flex items-center justify-between mb-5 pb-4 border-b border-[#1e2a47]">
         <div>
-          <h2 className="text-lg font-mono font-bold text-white uppercase tracking-wider">
+          <h2 className="text-xl font-mono font-bold text-white uppercase tracking-wider">
             On-Chain Pulse
           </h2>
-          <p className="text-xs text-[#8892a6] font-mono mt-1">
+          <p className="text-sm text-[#8892a6] font-mono mt-1">
             Gas · TPS · Bridge · Active Addresses — Mantle Mainnet
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-[#00ff88] rounded-full animate-pulse" />
-          <span className="text-xs font-mono text-[#00ff88]">LIVE</span>
+          <div className="w-2.5 h-2.5 bg-[#00ff88] rounded-full animate-pulse" />
+          <span className="text-sm font-mono text-[#00ff88] font-bold">LIVE</span>
         </div>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-[#00d4ff] font-mono text-sm">Fetching chain data...</div>
+        <div className="flex items-center justify-center py-16">
+          <div className="text-[#00d4ff] font-mono">Fetching chain data...</div>
         </div>
       ) : (
         <>
-          {/* Network Metrics - compact single row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
-            {network && (
-              <>
-                <div className="pro-card px-3 py-2">
-                  <div className="text-[9px] text-[#8892a6] font-mono mb-1">Gas Price</div>
-                  <div className="text-base font-mono font-bold text-[#00d4ff]">{network.gas_price_gwei} <span className="text-[10px] text-[#8892a6]">Gwei</span></div>
-                  <div className="mt-1"><GasSparkline data={gasHistory} /></div>
+          {/* Network Metrics — 4 big cards */}
+          {network && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+              <div className="pro-card p-4">
+                <div className="text-xs text-[#8892a6] font-mono uppercase mb-2">Gas Price</div>
+                <div className="text-3xl font-mono font-bold text-[#00d4ff] tabular-nums">
+                  {network.gas_price_gwei}
                 </div>
-                <div className="pro-card px-3 py-2">
-                  <div className="text-[9px] text-[#8892a6] font-mono mb-1">TPS</div>
-                  <div className="text-base font-mono font-bold text-[#00ff88]">{network.tps}</div>
-                  <div className="text-[10px] text-[#8892a6] font-mono">Block: {network.block_time_sec}s</div>
-                </div>
-                <div className="pro-card px-3 py-2">
-                  <div className="text-[9px] text-[#8892a6] font-mono mb-1">Network Load</div>
-                  <div className="text-base font-mono font-bold" style={{ color: network.congestion_color }}>{network.congestion}</div>
-                  <div className="mt-1 h-1 bg-[#1e2a47] rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${network.gas_utilization_pct}%`, backgroundColor: network.congestion_color }} />
-                  </div>
-                  <div className="text-[10px] text-[#8892a6] font-mono mt-0.5">{network.gas_utilization_pct}%</div>
-                </div>
-                <div className="pro-card px-3 py-2">
-                  <div className="text-[9px] text-[#8892a6] font-mono mb-1">Latest Block</div>
-                  <div className="text-base font-mono font-bold text-[#ffa502]">#{network.block_number.toLocaleString()}</div>
-                  <div className="text-[10px] text-[#8892a6] font-mono">{network.latest_block_txs} txs</div>
-                </div>
-              </>
-            )}
-          </div>
+                <div className="text-sm text-[#8892a6] font-mono mt-1">Gwei</div>
+              </div>
 
-      {/* Bridge + Addresses row */}
-      <div className="grid md:grid-cols-2 gap-3 mb-4">
-        {/* Bridge Activity */}
-        <div className="pro-card p-3">
-          <div className="text-[10px] font-mono font-bold text-white uppercase tracking-wider mb-2">Bridge Activity</div>
-          {bridge ? (
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <div className="text-[9px] text-[#8892a6] font-mono">Deposits</div>
-                <div className="text-sm font-mono font-bold text-[#00d4ff]">{bridge.bridge_txs_count}</div>
+              <div className="pro-card p-4">
+                <div className="text-xs text-[#8892a6] font-mono uppercase mb-2">TPS</div>
+                <div className="text-3xl font-mono font-bold text-[#00ff88] tabular-nums">
+                  {network.tps}
+                </div>
+                <div className="text-sm text-[#8892a6] font-mono mt-1">Block: {network.block_time_sec}s</div>
               </div>
-              <div>
-                <div className="text-[9px] text-[#8892a6] font-mono">ETH Bridged</div>
-                <div className="text-sm font-mono font-bold text-[#00ff88]">{bridge.total_bridged_eth}</div>
-              </div>
-              <div>
-                <div className="text-[9px] text-[#8892a6] font-mono">USD Value</div>
-                <div className="text-sm font-mono font-bold text-[#ffa502]">${bridge.total_bridged_usd.toLocaleString()}</div>
-              </div>
-            </div>
-          ) : <div className="text-[10px] text-[#8892a6] font-mono">Loading...</div>}
-        </div>
 
-        {/* Active Addresses */}
-        <div className="pro-card p-3">
-          <div className="text-[10px] font-mono font-bold text-white uppercase tracking-wider mb-2">Active Addresses</div>
-          {addresses ? (
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <div className="text-[9px] text-[#8892a6] font-mono">Unique Addr</div>
-                <div className="text-sm font-mono font-bold text-[#00d4ff]">{addresses.unique_addresses.toLocaleString()}</div>
+              <div className="pro-card p-4">
+                <div className="text-xs text-[#8892a6] font-mono uppercase mb-2">Network Load</div>
+                <div className="text-3xl font-mono font-bold tabular-nums" style={{ color: network.congestion_color }}>
+                  {network.gas_utilization_pct}%
+                </div>
+                <div className="mt-2 h-2 bg-[#1e2a47] rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-all"
+                    style={{ width: `${network.gas_utilization_pct}%`, backgroundColor: network.congestion_color }} />
+                </div>
+                <div className="text-sm font-mono mt-1" style={{ color: network.congestion_color }}>
+                  {network.congestion}
+                </div>
               </div>
-              <div>
-                <div className="text-[9px] text-[#8892a6] font-mono">Total Txs</div>
-                <div className="text-sm font-mono font-bold text-[#00ff88]">{addresses.total_transactions.toLocaleString()}</div>
-              </div>
-              <div>
-                <div className="text-[9px] text-[#8892a6] font-mono">Blocks</div>
-                <div className="text-sm font-mono font-bold text-[#8892a6]">{addresses.blocks_scanned}</div>
-              </div>
-            </div>
-          ) : <div className="text-[10px] text-[#8892a6] font-mono">Loading...</div>}
-        </div>
-      </div>
 
-          {/* Gas History Table */}
-          {gasHistory.length > 0 && (
-            <div>
-              <div className="text-xs font-mono font-bold text-white uppercase tracking-wider mb-3">
-                Gas History (Last {gasHistory.length} Blocks)
-              </div>
-              <div className="overflow-x-auto">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Block</th>
-                      <th>Gas (Gwei)</th>
-                      <th>Base Fee</th>
-                      <th>Txs</th>
-                      <th>Utilization</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {gasHistory.slice(-10).reverse().map((point, i) => (
-                      <tr key={i}>
-                        <td className="text-[#8892a6] tabular-nums">#{point.block.toLocaleString()}</td>
-                        <td className="text-[#00d4ff] tabular-nums">{point.gas_price_gwei}</td>
-                        <td className="text-[#8892a6] tabular-nums">{point.base_fee_gwei}</td>
-                        <td className="text-white tabular-nums">{point.tx_count}</td>
-                        <td>
-                          <div className="flex items-center gap-2">
-                            <div className="w-12 h-1 bg-[#1e2a47] rounded-full overflow-hidden">
-                              <div
-                                className="h-full"
-                                style={{
-                                  width: `${point.utilization_pct}%`,
-                                  backgroundColor:
-                                    point.utilization_pct > 80 ? "#ff4757" :
-                                    point.utilization_pct > 50 ? "#ffa502" : "#00ff88",
-                                }}
-                              />
-                            </div>
-                            <span className="text-xs text-[#8892a6] tabular-nums">
-                              {point.utilization_pct}%
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="pro-card p-4">
+                <div className="text-xs text-[#8892a6] font-mono uppercase mb-2">Latest Block</div>
+                <div className="text-2xl font-mono font-bold text-[#ffa502] tabular-nums">
+                  #{network.block_number.toLocaleString()}
+                </div>
+                <div className="text-sm text-[#8892a6] font-mono mt-1">{network.latest_block_txs} txs</div>
               </div>
             </div>
           )}
+
+          {/* Gas Heatmap */}
+          <div className="pro-card p-4 mb-4">
+            <GasHeatmap data={gasHistory} />
+          </div>
+
+          {/* Bridge + Addresses */}
+          <div className="grid md:grid-cols-2 gap-3">
+            <div className="pro-card p-4">
+              <div className="text-sm font-mono font-bold text-white uppercase tracking-wider mb-3">
+                Bridge Activity
+              </div>
+              {bridge ? (
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: "Deposits", value: String(bridge.bridge_txs_count), color: "text-[#00d4ff]" },
+                    { label: "ETH Bridged", value: String(bridge.total_bridged_eth), color: "text-[#00ff88]" },
+                    { label: "USD Value", value: `$${bridge.total_bridged_usd.toLocaleString()}`, color: "text-[#ffa502]" },
+                  ].map(item => (
+                    <div key={item.label}>
+                      <div className="text-xs text-[#8892a6] font-mono mb-1">{item.label}</div>
+                      <div className={`text-xl font-mono font-bold tabular-nums ${item.color}`}>{item.value}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : <div className="text-sm text-[#8892a6] font-mono">Loading...</div>}
+            </div>
+
+            <div className="pro-card p-4">
+              <div className="text-sm font-mono font-bold text-white uppercase tracking-wider mb-3">
+                Active Addresses
+              </div>
+              {addresses ? (
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: "Unique Addr", value: addresses.unique_addresses.toLocaleString(), color: "text-[#00d4ff]" },
+                    { label: "Total Txs", value: addresses.total_transactions.toLocaleString(), color: "text-[#00ff88]" },
+                    { label: "Blocks", value: String(addresses.blocks_scanned), color: "text-[#8892a6]" },
+                  ].map(item => (
+                    <div key={item.label}>
+                      <div className="text-xs text-[#8892a6] font-mono mb-1">{item.label}</div>
+                      <div className={`text-xl font-mono font-bold tabular-nums ${item.color}`}>{item.value}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : <div className="text-sm text-[#8892a6] font-mono">Loading...</div>}
+            </div>
+          </div>
         </>
       )}
     </div>
