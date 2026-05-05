@@ -5,262 +5,161 @@ import { useState, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
 
 interface Trader {
-  rank: number;
-  address: string;
-  profit: number;
-  profit_pct: number;
-  win_rate: number;
-  trades: number;
-  total_volume: number;
-  strategy: string;
-  followers: number;
-  last_trade: string;
+  rank: number; address: string; profit: number; profit_pct: number;
+  win_rate: number; trades: number; total_volume: number;
+  strategy: string; followers: number; last_trade: string;
 }
+
+const stratColor = (s: string) => ({ "Whale Follower": "text-[#00d4ff]", "Smart Money": "text-[#00ff88]", "Liquidity Hunter": "text-[#ffa502]" }[s] ?? "text-[#8892a6]");
 
 export function CopyTradingDashboard() {
   const [traders, setTraders] = useState<Trader[]>([]);
-  const [selectedTrader, setSelectedTrader] = useState<string | null>(null);
-  const [traderDetails, setTraderDetails] = useState<any>(null);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [details, setDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   useEffect(() => {
-    fetchTopTraders();
-    const interval = setInterval(fetchTopTraders, 30000);
-    return () => clearInterval(interval);
+    load();
+    const iv = setInterval(load, 30000);
+    return () => clearInterval(iv);
   }, []);
 
-  const fetchTopTraders = async () => {
+  const load = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/copy-trading/top-traders?limit=10`);
-      if (response.ok) {
-        const data = await response.json();
-        setTraders(data.traders || []);
-      }
-    } catch (error) {
-      console.error("Failed to fetch top traders:", error);
-    } finally {
-      setLoading(false);
-    }
+      const r = await fetch(`${API_URL}/api/copy-trading/top-traders?limit=10`);
+      if (r.ok) { const d = await r.json(); setTraders(d.traders || []); }
+    } catch {} finally { setLoading(false); }
   };
 
-  const fetchTraderDetails = async (address: string) => {
+  const loadDetails = async (addr: string) => {
     try {
-      const response = await fetch(`${API_URL}/api/copy-trading/trader/${address}`);
-      if (response.ok) {
-        const data = await response.json();
-        setTraderDetails(data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch trader details:", error);
-    }
+      const r = await fetch(`${API_URL}/api/copy-trading/trader/${addr}`);
+      if (r.ok) setDetails(await r.json());
+    } catch {}
   };
 
-  const handleTraderClick = (address: string) => {
-    setSelectedTrader(address);
-    fetchTraderDetails(address);
-  };
+  const handleClick = (addr: string) => { setSelected(addr); loadDetails(addr); };
 
-  const getStrategyColor = (strategy: string) => {
-    switch (strategy) {
-      case "Whale Follower":
-        return "text-[#00d4ff]";
-      case "Smart Money":
-        return "text-[#00ff88]";
-      case "Liquidity Hunter":
-        return "text-[#ffa502]";
-      default:
-        return "text-[#8892a6]";
-    }
-  };
-
-  const getRankBadge = (rank: number) => {
-    if (rank === 1) return "🥇";
-    if (rank === 2) return "🥈";
-    if (rank === 3) return "🥉";
-    return `#${rank}`;
-  };
-
-  if (loading) {
-    return (
-      <div className="pro-card p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-[#00d4ff] font-mono">Loading traders...</div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="pro-card p-5 flex items-center justify-center h-64">
+      <div className="text-[#00d4ff] font-mono">Loading traders...</div>
+    </div>
+  );
 
   return (
-    <div className="pro-card p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#1e2a47]">
+    <div className="pro-card p-5">
+      <div className="flex items-center justify-between mb-5 pb-4 border-b border-[#1e2a47]">
         <div>
-          <h2 className="text-lg font-mono font-bold text-white uppercase tracking-wider">
-            Copy Trading Leaderboard
-          </h2>
-          <p className="text-xs text-[#8892a6] font-mono mt-1">
-            Track top traders' performance → Copy their winning strategies automatically
-          </p>
+          <h2 className="text-xl font-mono font-bold text-white uppercase tracking-wider">Copy Trading Leaderboard</h2>
+          <p className="text-sm text-[#8892a6] font-mono mt-1">Track top traders → Copy their winning strategies automatically</p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-[#00ff88] rounded-full animate-pulse" />
-          <span className="text-xs font-mono text-[#00ff88]">LIVE</span>
+          <div className="w-2.5 h-2.5 bg-[#00ff88] rounded-full animate-pulse" />
+          <span className="text-sm font-mono text-[#00ff88] font-bold">LIVE</span>
         </div>
       </div>
 
-      {/* Traders Table - scrollable on mobile */}
-      <div className="overflow-x-auto mb-6 -mx-4 md:mx-0 px-4 md:px-0">
-        <div className="min-w-[600px]">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Trader</th>
-                <th>Strategy</th>
-                <th>Profit</th>
-                <th>Win Rate</th>
-                <th>Trades</th>
-                <th>Volume</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {traders.map((trader, idx) => (
-                <motion.tr
-                  key={trader.address}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className="cursor-pointer"
-                  onClick={() => handleTraderClick(trader.address)}
-                >
-                  <td className="text-[#8892a6] font-mono text-xs">#{trader.rank}</td>
-                  <td>
-                    <code className="text-[#00d4ff] text-xs">
-                      {trader.address.slice(0, 6)}...{trader.address.slice(-4)}
-                    </code>
-                  </td>
-                  <td>
-                    <span className={`text-xs font-bold ${getStrategyColor(trader.strategy)}`}>
-                      {trader.strategy}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="text-[#00ff88] font-bold text-xs">${(trader.profit / 1000).toFixed(1)}K</div>
-                    <div className="text-[10px] text-[#8892a6]">+{trader.profit_pct.toFixed(1)}%</div>
-                  </td>
-                  <td>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-10 h-1 bg-[#1e2a47] rounded-full overflow-hidden">
-                        <div className="h-full bg-[#00ff88]" style={{ width: `${trader.win_rate}%` }} />
-                      </div>
-                      <span className="text-[#00ff88] tabular-nums text-xs">{trader.win_rate.toFixed(0)}%</span>
+      <div className="space-y-3 mb-5">
+        {traders.map((t, idx) => (
+          <motion.div key={t.address} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.05 }} onClick={() => handleClick(t.address)}
+            className={`pro-card-hover p-5 cursor-pointer ${selected === t.address ? "border border-[#00d4ff]/40" : ""}`}>
+            <div className="flex items-center gap-4">
+              {/* Rank */}
+              <div className="w-14 text-center flex-shrink-0">
+                {t.rank <= 3 ? (
+                  <div className="text-3xl">{["🥇","🥈","🥉"][t.rank-1]}</div>
+                ) : (
+                  <div className="text-3xl font-mono font-bold text-[#8892a6] tabular-nums">#{t.rank}</div>
+                )}
+              </div>
+
+              {/* Address + strategy + stats */}
+              <div className="flex-1 min-w-0">
+                <code className="text-sm font-mono text-[#00d4ff] block mb-1">
+                  {t.address.slice(0, 6)}...{t.address.slice(-4)}
+                </code>
+                <span className={`text-sm font-mono font-bold ${stratColor(t.strategy)}`}>{t.strategy}</span>
+                <div className="flex items-center gap-5 mt-2">
+                  {[
+                    { label: "Trades", value: t.trades },
+                    { label: "Volume", value: `$${(t.total_volume / 1e6).toFixed(1)}M` },
+                    { label: "Followers", value: t.followers },
+                  ].map(item => (
+                    <div key={item.label}>
+                      <div className="text-xs text-[#8892a6] font-mono uppercase">{item.label}</div>
+                      <div className="text-sm font-mono text-white tabular-nums">{item.value}</div>
                     </div>
-                  </td>
-                  <td className="tabular-nums text-xs">{trader.trades}</td>
-                  <td className="tabular-nums text-xs">${(trader.total_volume / 1000000).toFixed(1)}M</td>
-                  <td>
-                    <button className="pro-btn text-xs py-1 px-2">View</button>
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Profit + win rate */}
+              <div className="flex-shrink-0 text-right">
+                <div className="text-2xl font-mono font-bold tabular-nums text-[#00ff88]">${(t.profit / 1000).toFixed(1)}K</div>
+                <div className="text-sm font-mono text-[#00ff88] tabular-nums mb-2">+{t.profit_pct.toFixed(1)}%</div>
+                <div className="flex items-center gap-2 justify-end">
+                  <div className="w-20 h-1.5 bg-[#1e2a47] rounded-full overflow-hidden">
+                    <div className="h-full bg-[#00ff88]" style={{ width: `${t.win_rate}%` }} />
+                  </div>
+                  <span className="text-sm font-mono text-[#00ff88] tabular-nums">{t.win_rate.toFixed(0)}%</span>
+                </div>
+                <div className="text-xs text-[#8892a6] font-mono uppercase mt-1">Win Rate</div>
+              </div>
+
+              <button className="pro-btn text-sm py-2 px-4 flex-shrink-0">View</button>
+            </div>
+          </motion.div>
+        ))}
       </div>
 
-      {/* Trader Details Modal */}
-      {selectedTrader && traderDetails && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="pro-card p-6 bg-[#1e2a47]/30"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-mono font-bold text-white uppercase">
-              Trader Details
-            </h3>
-            <button
-              onClick={() => setSelectedTrader(null)}
-              className="text-[#8892a6] hover:text-white font-mono text-xs"
-            >
-              Close
-            </button>
+      {/* Trader details */}
+      {selected && details && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="pro-card p-5 bg-[#1e2a47]/30">
+          <div className="flex items-center justify-between mb-5 pb-4 border-b border-[#1e2a47]">
+            <h3 className="text-xl font-mono font-bold text-white uppercase">Trader Details</h3>
+            <button onClick={() => setSelected(null)} className="text-sm font-mono py-2 px-4 text-[#8892a6] hover:text-white">Close</button>
           </div>
 
           <div className="mb-4">
-            <div className="text-xs text-[#8892a6] font-mono mb-1">Address</div>
-            <code className="text-sm text-[#00d4ff] font-mono">
-              {traderDetails.address}
-            </code>
+            <div className="text-xs text-[#8892a6] font-mono uppercase mb-1">Address</div>
+            <code className="text-sm font-mono text-[#00d4ff]">{details.address}</code>
           </div>
 
-          {/* AI Strategy Analysis */}
-          {traderDetails.strategy_analysis?.status === "success" && (
+          {details.strategy_analysis?.status === "success" && (
             <div className="p-4 bg-[#00d4ff]/10 border border-[#00d4ff]/30 rounded-sm mb-4">
-              <div className="text-xs font-mono font-bold text-[#00d4ff] uppercase mb-2">
-                AI Strategy Analysis
-              </div>
-              <div className="text-sm text-white font-mono whitespace-pre-wrap">
-                {traderDetails.strategy_analysis.analysis}
-              </div>
+              <div className="text-xs text-[#8892a6] font-mono uppercase mb-2">AI Strategy Analysis</div>
+              <div className="text-sm font-mono text-white whitespace-pre-wrap">{details.strategy_analysis.analysis}</div>
             </div>
           )}
 
-          {/* Recent Trades */}
           <div>
-            <div className="text-xs font-mono font-bold text-white uppercase mb-3">
-              Recent Trades ({traderDetails.trades?.length || 0})
-            </div>
+            <div className="text-sm font-mono font-bold text-white uppercase mb-3">Recent Trades ({details.trades?.length || 0})</div>
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {traderDetails.trades?.slice(0, 5).map((trade: any, idx: number) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-3 bg-[#141b2d] rounded-sm"
-                >
-                  <div className="flex-1">
-                    <div className="text-xs font-mono text-white mb-1">
-                      {trade.type?.replace(/_/g, " ")}
-                    </div>
-                    <div className="text-xs text-[#8892a6] font-mono">
-                      {trade.protocol} • ${(trade.amount / 1000).toFixed(1)}K
-                    </div>
+              {details.trades?.slice(0, 5).map((trade: any, i: number) => (
+                <div key={i} className="flex items-center justify-between p-4 bg-[#141b2d] rounded-sm">
+                  <div>
+                    <div className="text-sm font-mono text-white mb-1">{trade.type?.replace(/_/g, " ")}</div>
+                    <div className="text-sm text-[#8892a6] font-mono">{trade.protocol} • ${(trade.amount / 1000).toFixed(1)}K</div>
                   </div>
                   <div className="text-right">
-                    <div className={`text-sm font-mono font-bold ${
-                      trade.pnl > 0 ? "text-[#00ff88]" : "text-[#ff4757]"
-                    }`}>
+                    <div className={`text-sm font-mono font-bold ${trade.pnl > 0 ? "text-[#00ff88]" : "text-[#ff4757]"}`}>
                       {trade.pnl > 0 ? "+" : ""}{trade.pnl_pct?.toFixed(1)}%
                     </div>
-                    <div className="text-xs text-[#8892a6] font-mono">
-                      {formatDistanceToNow(new Date(trade.timestamp), { addSuffix: true })}
-                    </div>
+                    <div className="text-sm text-[#8892a6] font-mono">{formatDistanceToNow(new Date(trade.timestamp), { addSuffix: true })}</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Copy Trade Button */}
-          <div className="mt-6 pt-4 border-t border-[#1e2a47]">
-            <button className="w-full pro-btn-primary py-3">
-              Copy This Trader (Coming Soon)
-            </button>
-            <div className="mt-2 text-xs text-[#8892a6] font-mono text-center">
-              Auto-copy trades from this wallet to your account
-            </div>
+          <div className="mt-5 pt-4 border-t border-[#1e2a47]">
+            <button className="w-full pro-btn-primary text-sm font-mono py-3">Copy This Trader (Coming Soon)</button>
+            <div className="mt-2 text-sm text-[#8892a6] font-mono text-center">Auto-copy trades from this wallet to your account</div>
           </div>
         </motion.div>
       )}
-
-      {/* Info Banner */}
-      <div className="mt-6 p-4 bg-[#1e2a47]/20 border border-[#1e2a47] rounded-sm">
-        <div className="text-xs text-[#8892a6] font-mono">
-          <span className="text-[#00d4ff] font-bold">Copy Trading:</span> Follow successful traders automatically. When they buy, you buy. When they sell, you sell. AI analyzes their strategy to help you choose the best traders to copy.
-        </div>
-      </div>
     </div>
   );
 }
