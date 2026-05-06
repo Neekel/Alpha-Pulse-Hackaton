@@ -6,6 +6,8 @@
 [![Backend](https://img.shields.io/badge/API-Railway-00ff88?style=flat-square)](https://alpha-pulse-hackaton-production.up.railway.app)
 [![Mantle Mainnet](https://img.shields.io/badge/Mantle-Mainnet%205000-a855f7?style=flat-square)](https://mantlescan.xyz)
 [![Telegram](https://img.shields.io/badge/Bot-@AlphaPulseBot-00d4ff?style=flat-square)](https://t.me/AlphaPulseBot)
+[![PredictionRegistry](https://img.shields.io/badge/Contract-Verified-00ff88?style=flat-square&logo=ethereum)](https://mantlescan.xyz/address/0x4597f29db1FBFAbfCEdDb3E9dEF7cfD584dbA090#code)
+[![API Status](https://img.shields.io/website?url=https%3A%2F%2Falpha-pulse-hackaton-production.up.railway.app%2F&label=API%20Status&style=flat-square&color=00ff88)](https://alpha-pulse-hackaton-production.up.railway.app/)
 
 ---
 
@@ -106,20 +108,26 @@ Functions:
 
 ## 🏗️ Architecture
 
-```
-Mantle RPC
-    ↓
-MantleMonitor (Python/web3.py)
-    ↓
-AnomalyDetectors × 4
-    ↓
-AIExplainer (Groq LLM)          ←→  Supabase (PostgreSQL)
-    ↓
-FastAPI Backend (Railway)
-    ↓
-Next.js Dashboard (Vercel)  +  Telegram Bot
-    ↓
-PredictionRegistry (Mantle Mainnet)
+```mermaid
+graph TD
+    A[Mantle RPC<br/>rpc.mantle.xyz] -->|blocks & txs| B[MantleMonitor<br/>Python/web3.py]
+    B --> C{AnomalyDetectors}
+    C -->|WHALE_BUY| D[AIExplainer<br/>Groq LLM]
+    C -->|LIQUIDITY_EXIT| D
+    C -->|SMART_CLUSTER| D
+    C -->|MOMENTUM_BUILD| D
+    D --> E[(Supabase<br/>PostgreSQL)]
+    D --> F[Telegram Bot<br/>Alerts]
+    E --> G[FastAPI Backend<br/>Railway]
+    G --> H[Next.js Dashboard<br/>Vercel]
+    G --> I[AI Multi-Agent<br/>4 parallel agents]
+    G --> J[PredictionRegistry<br/>Mantle Mainnet]
+    I --> K[Orchestrator<br/>BUY/SELL/HOLD]
+    
+    style A fill:#1e2a47,color:#00d4ff
+    style J fill:#1e2a47,color:#00ff88
+    style K fill:#1e2a47,color:#ffa502
+    style H fill:#1e2a47,color:#a855f7
 ```
 
 **Stack:**
