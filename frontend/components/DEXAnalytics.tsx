@@ -77,18 +77,26 @@ export function DEXAnalytics() {
         </div>
       </div>
 
-      {/* Summary — 3 big metric cards */}
-      <div className="grid grid-cols-3 gap-3 mb-5">
-        {[
-          { label: "24h Volume", value: summary ? fmtUSD(summary.total_volume_24h) : "—", color: "text-[#00d4ff]" },
-          { label: "Total TVL", value: summary ? fmtUSD(summary.total_tvl) : "—", color: "text-[#00ff88]" },
-          { label: "24h Transactions", value: summary ? summary.total_transactions_24h.toLocaleString() : "—", color: "text-[#ffa502]" },
-        ].map(item => (
-          <div key={item.label} className="pro-card p-4">
-            <div className="text-xs text-[#8892a6] font-mono uppercase mb-2">{item.label}</div>
-            <div className={`text-3xl font-mono font-bold tabular-nums ${item.color}`}>{item.value}</div>
-          </div>
-        ))}
+      {/* Summary — single row like Executive Dashboard */}
+      <div className="grid grid-cols-3 gap-2 mb-4 p-3 bg-[#1e2a47]/20 rounded-sm">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-[#8892a6] font-mono uppercase">24h Volume</span>
+          <span className="text-base font-mono font-bold text-[#00d4ff] tabular-nums">
+            {summary ? `$${fmtUSD(summary.total_volume_24h)}` : "—"}
+          </span>
+        </div>
+        <div className="flex items-center justify-between border-x border-[#1e2a47] px-3">
+          <span className="text-xs text-[#8892a6] font-mono uppercase">Total TVL</span>
+          <span className="text-base font-mono font-bold text-[#00ff88] tabular-nums">
+            {summary ? `$${fmtUSD(summary.total_tvl)}` : "—"}
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-[#8892a6] font-mono uppercase">24h Txs</span>
+          <span className="text-base font-mono font-bold text-[#ffa502] tabular-nums">
+            {summary ? summary.total_transactions_24h.toLocaleString() : "—"}
+          </span>
+        </div>
       </div>
 
       {/* Tabs */}

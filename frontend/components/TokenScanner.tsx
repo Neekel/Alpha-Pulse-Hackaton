@@ -82,19 +82,21 @@ export function TokenScanner() {
         </div>
       </div>
 
-      {/* Stats — 3 big cards */}
+      {/* Stats — single row like Executive Dashboard */}
       {stats && (
-        <div className="grid grid-cols-3 gap-3 mb-5">
-          {[
-            { label: "New Tokens / hr", value: stats.new_tokens_1h, color: "text-[#00d4ff]" },
-            { label: "Est. 24h Deployments", value: stats.new_tokens_24h, color: "text-[#ffa502]" },
-            { label: "Scanned Now", value: tokens.length, color: "text-[#00ff88]" },
-          ].map(item => (
-            <div key={item.label} className="pro-card p-4">
-              <div className="text-xs text-[#8892a6] font-mono uppercase mb-2">{item.label}</div>
-              <div className={`text-3xl font-mono font-bold tabular-nums ${item.color}`}>{item.value}</div>
-            </div>
-          ))}
+        <div className="grid grid-cols-3 gap-2 mb-4 p-3 bg-[#1e2a47]/20 rounded-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-[#8892a6] font-mono uppercase">New / hr</span>
+            <span className="text-base font-mono font-bold text-[#00d4ff] tabular-nums">{stats.new_tokens_1h}</span>
+          </div>
+          <div className="flex items-center justify-between border-x border-[#1e2a47] px-3">
+            <span className="text-xs text-[#8892a6] font-mono uppercase">Est. 24h</span>
+            <span className="text-base font-mono font-bold text-[#ffa502] tabular-nums">{stats.new_tokens_24h}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-[#8892a6] font-mono uppercase">Scanned</span>
+            <span className="text-base font-mono font-bold text-[#00ff88] tabular-nums">{tokens.length}</span>
+          </div>
         </div>
       )}
 

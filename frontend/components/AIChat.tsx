@@ -14,6 +14,21 @@ const SUGGESTIONS = [
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+const CHAT_LIMIT_KEY = "alphapulse_chat_used";
+
+function getChatUsed(): boolean {
+  try {
+    const stored = localStorage.getItem(CHAT_LIMIT_KEY);
+    if (!stored) return false;
+    const { date } = JSON.parse(stored);
+    return date === new Date().toISOString().slice(0, 10);
+  } catch { return false; }
+}
+
+function markChatUsed() {
+  localStorage.setItem(CHAT_LIMIT_KEY, JSON.stringify({ date: new Date().toISOString().slice(0, 10) }));
+}
+
 export function AIChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -21,13 +36,19 @@ export function AIChat() {
   const [address, setAddress] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzeResult, setAnalyzeResult] = useState<any>(null);
+  const [chatUsed, setChatUsed] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setChatUsed(getChatUsed());
+  }, []);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const send = async (text?: string) => {
     const msg = (text || input).trim();
     if (!msg || loading) return;
+    if (chatUsed) return; // rate limit
     setInput("");
     const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     setMessages(prev => [...prev, { role: "user", text: msg, time }]);
@@ -41,6 +62,8 @@ export function AIChat() {
       if (r.ok) {
         const d = await r.json();
         setMessages(prev => [...prev, { role: "ai", text: d.response, time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }]);
+        markChatUsed();
+        setChatUsed(true);
       }
     } catch { setMessages(prev => [...prev, { role: "ai", text: "Connection error. Please try again.", time: "" }]); }
     finally { setLoading(false); }
@@ -121,19 +144,34 @@ export function AIChat() {
         </div>
 
         {/* Input */}
-        <div className="flex gap-2">
-          <input
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && send()}
-            placeholder="Ask about market, whales, signals..."
-            className="flex-1 bg-[#1e2a47] border border-[#2a3f5f] rounded-sm px-4 py-2.5 text-sm font-mono text-white placeholder-[#8892a6] focus:outline-none focus:border-[#00d4ff] transition-colors"
-          />
-          <button onClick={() => send()} disabled={loading || !input.trim()}
-            className="pro-btn-primary text-sm font-mono py-2.5 px-4 disabled:opacity-50">
-            Send
-          </button>
-        </div>
+        {chatUsed ? (
+          <div className="p-4 bg-[#ffa502]/10 border border-[#ffa502]/30 rounded-sm text-center">
+            <div className="text-sm font-mono font-bold text-[#ffa502] mb-1">Demo limit reached</div>
+            <div className="text-xs font-mono text-[#8892a6] mb-3">1 free question per day. Upgrade for unlimited access.</div>
+            <button className="pro-btn-primary text-sm font-mono py-2 px-6">
+              Upgrade to Premium — $29/mo
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && send()}
+              placeholder="Ask about market, whales, signals..."
+              className="flex-1 bg-[#1e2a47] border border-[#2a3f5f] rounded-sm px-4 py-2.5 text-sm font-mono text-white placeholder-[#8892a6] focus:outline-none focus:border-[#00d4ff] transition-colors"
+            />
+            <button onClick={() => send()} disabled={loading || !input.trim()}
+              className="pro-btn-primary text-sm font-mono py-2.5 px-4 disabled:opacity-50">
+              Send
+            </button>
+          </div>
+        )}
+        {!chatUsed && (
+          <div className="mt-2 text-xs text-[#8892a6] font-mono text-center">
+            Demo: 1 free question per day · <span className="text-[#00d4ff]">Upgrade for unlimited</span>
+          </div>
+        )}
       </div>
 
       {/* Wallet/Token Analyzer */}
