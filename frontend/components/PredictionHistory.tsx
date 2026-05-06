@@ -33,7 +33,6 @@ export function PredictionHistory() {
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4 mb-5 pb-4 border-b border-[#1e2a47]">
         <div>
-          <div className="text-xs text-[#8892a6] font-mono uppercase tracking-wider mb-1">Historical Accuracy</div>
           <h2 className="text-xl font-mono font-bold text-white uppercase tracking-wider">Prediction History</h2>
           <p className="text-sm text-[#8892a6] font-mono mt-1">Verified predictions with outcomes</p>
         </div>

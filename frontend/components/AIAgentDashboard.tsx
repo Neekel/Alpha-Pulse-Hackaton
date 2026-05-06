@@ -166,7 +166,7 @@ export function AIAgentDashboard() {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#1e2a47]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#1e2a47]">
         <div>
           <div className="flex items-center gap-3 mb-1">
             <div className="w-8 h-8 bg-[#00d4ff] rounded-sm flex items-center justify-center">
@@ -185,10 +185,10 @@ export function AIAgentDashboard() {
           disabled={analyzing}
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
-          className="pro-btn-primary text-sm font-mono py-3 px-6 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
+          className="w-full sm:w-auto pro-btn-primary text-sm font-mono py-3 px-6 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {analyzing ? (
-            <span className="flex items-center gap-2">
+            <span className="flex items-center justify-center gap-2">
               <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>⟳</motion.span>
               Analyzing...
             </span>

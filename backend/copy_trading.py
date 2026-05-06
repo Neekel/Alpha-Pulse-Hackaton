@@ -27,33 +27,24 @@ class CopyTradingSystem:
         self.top_traders: List[TopTrader] = []
     
     async def get_top_traders(self, limit: int = 10) -> List[Dict[str, Any]]:
-        """Get top performing traders from database"""
-        
+        """Get top performing traders — real data from Supabase, fallback to curated demo data"""
         try:
-            # Query anomalies to find most profitable wallets
             response = self.supabase.table('anomalies') \
                 .select('wallet, amount, type, confidence') \
                 .order('timestamp', desc=True) \
                 .limit(1000) \
                 .execute()
-            
             anomalies = response.data if response.data else []
-            
-            # Aggregate by wallet
+
             wallet_stats = {}
             for anomaly in anomalies:
                 wallet = anomaly.get('wallet', 'unknown')
+                if not wallet or wallet == 'unknown':
+                    continue
                 amount = anomaly.get('amount', 0)
                 confidence = anomaly.get('confidence', 0)
-                
                 if wallet not in wallet_stats:
-                    wallet_stats[wallet] = {
-                        'total_volume': 0,
-                        'trades': 0,
-                        'avg_confidence': 0,
-                        'types': []
-                    }
-                
+                    wallet_stats[wallet] = {'total_volume': 0, 'trades': 0, 'avg_confidence': 0, 'types': []}
                 wallet_stats[wallet]['total_volume'] += amount
                 wallet_stats[wallet]['trades'] += 1
                 wallet_stats[wallet]['avg_confidence'] += confidence
@@ -90,6 +81,10 @@ class CopyTradingSystem:
             # Add rank
             for i, trader in enumerate(traders[:limit]):
                 trader['rank'] = i + 1
+            
+            # Always return demo data if not enough real traders
+            if len(traders) < 3:
+                return self._get_mock_traders(limit)
             
             return traders[:limit]
             

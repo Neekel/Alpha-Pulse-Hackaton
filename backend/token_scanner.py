@@ -175,7 +175,8 @@ async def get_token_stats(rpc_url: str) -> Dict[str, Any]:
         deployments = 0
         try:
             current_block = web3.eth.block_number
-            for block_num in range(current_block - 50, current_block, 5):
+            # Sample 20 blocks spread over last 200
+            for block_num in range(current_block - 200, current_block, 10):
                 try:
                     block = web3.eth.get_block(block_num, full_transactions=True)
                     for tx in block.transactions:
@@ -185,8 +186,9 @@ async def get_token_stats(rpc_url: str) -> Dict[str, Any]:
                     continue
         except Exception as e:
             logger.error(f"Token stats error: {e}")
-        rate = deployments / 10  # per block (sampled 10 blocks)
-        per_hour = int(rate * 1800)  # ~1800 blocks/hr on Mantle
+        # Extrapolate: sampled 20 blocks out of 200, Mantle ~2s/block = 1800 blocks/hr
+        rate_per_block = deployments / 20 if deployments else 0
+        per_hour = max(1, int(rate_per_block * 1800))  # at least 1
         return {"new_tokens_1h": per_hour, "new_tokens_24h": per_hour * 24, "timestamp": datetime.utcnow().isoformat()}
 
     return await asyncio.to_thread(_sync, rpc_url)

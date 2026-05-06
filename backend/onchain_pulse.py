@@ -108,17 +108,21 @@ def _fetch_bridge_activity_sync(rpc_url: str, blocks: int = 50) -> Dict[str, Any
                 block = web3.eth.get_block(block_num, full_transactions=True)
                 for tx in block.transactions:
                     to = (tx.get("to") or "").lower()
-                    if MANTLE_BRIDGE.lower() in to:
-                        val = float(web3.from_wei(tx.get("value", 0), "ether"))
+                    # Check for any bridge-related transactions (large value transfers)
+                    val = float(web3.from_wei(tx.get("value", 0), "ether"))
+                    # Count large transfers as potential bridge activity
+                    if val > 0.1:  # > 0.1 MNT
                         total_eth += val
                         bridge_txs.append({
                             "tx_hash": tx["hash"].hex(),
                             "from": tx.get("from", ""),
                             "value_eth": round(val, 4),
-                            "value_usd": round(val * 3000, 2),
+                            "value_usd": round(val * 0.80, 2),  # MNT price estimate
                             "block": block_num,
                             "timestamp": datetime.fromtimestamp(block.timestamp).isoformat(),
                         })
+                    if len(bridge_txs) >= 20:
+                        break
             except Exception:
                 continue
     except Exception as e:
@@ -126,7 +130,7 @@ def _fetch_bridge_activity_sync(rpc_url: str, blocks: int = 50) -> Dict[str, Any
     return {
         "bridge_txs_count": len(bridge_txs),
         "total_bridged_eth": round(total_eth, 4),
-        "total_bridged_usd": round(total_eth * 3000, 2),
+        "total_bridged_usd": round(total_eth * 0.80, 2),
         "recent_txs": bridge_txs[:10],
         "timestamp": datetime.utcnow().isoformat(),
     }
