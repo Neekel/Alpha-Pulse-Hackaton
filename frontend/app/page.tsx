@@ -14,6 +14,8 @@ import { ExecutiveDashboard } from "@/components/ExecutiveDashboard";
 import { DEXAnalytics } from "@/components/DEXAnalytics";
 import { TokenScanner } from "@/components/TokenScanner";
 import { OnChainPulse } from "@/components/OnChainPulse";
+import { AIChat } from "@/components/AIChat";
+import { AIDailyBriefing } from "@/components/AIDailyBriefing";
 
 export default function Home() {
   const [stats, setStats] = useState<any>(null);
@@ -126,6 +128,10 @@ export default function Home() {
 
         {/* AI Multi-Agent System */}
         <div className="mb-3"><AIAgentDashboard /></div>
+
+        {/* AI Daily Briefing + Chat + Analyzer */}
+        <div className="mb-3"><AIDailyBriefing /></div>
+        <div className="mb-3"><AIChat /></div>
 
         {/* Copy Trading Dashboard */}
         <div className="mb-3"><CopyTradingDashboard /></div>

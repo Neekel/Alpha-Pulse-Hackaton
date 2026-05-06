@@ -115,37 +115,28 @@ export function DEXAnalytics() {
             (summary?.top_pairs || []).map((pair: DEXPair, i: number) => {
               const badge = dexBadgeColor(pair.dex);
               return (
-                <div key={i} className="pro-card-hover p-4 flex items-center gap-4">
-                  {/* Rank */}
-                  <div className="text-2xl font-mono font-bold text-[#1e2a47] w-8 flex-shrink-0">
-                    {i + 1}
-                  </div>
-                  {/* DEX badge */}
-                  <div className={`px-2 py-1 rounded-sm border text-xs font-mono font-bold flex-shrink-0 ${badge.bg} ${badge.text} ${badge.border}`}>
+                <div key={i} className="pro-card-hover px-4 py-3 flex items-center gap-3">
+                  <div className="text-base font-mono font-bold text-[#1e2a47] w-6 flex-shrink-0">{i+1}</div>
+                  <div className={`px-2 py-0.5 rounded-sm border text-xs font-mono font-bold flex-shrink-0 ${badge.bg} ${badge.text} ${badge.border}`}>
                     {pair.dex.split(" ")[0]}
                   </div>
-                  {/* Pair name */}
                   <div className="flex-1 min-w-0">
-                    <div className="text-lg font-mono font-bold text-white">{pair.pair}</div>
-                    <a href={`https://mantlescan.xyz/address/${pair.pool_address}`}
-                      target="_blank" rel="noopener noreferrer"
-                      className="text-xs text-[#8892a6] font-mono hover:text-[#00d4ff]">
-                      {pair.pool_address.slice(0, 10)}...
-                    </a>
+                    <span className="text-base font-mono font-bold text-white">{pair.pair}</span>
+                    <a href={`https://mantlescan.xyz/address/${pair.pool_address}`} target="_blank" rel="noopener noreferrer"
+                      className="text-xs text-[#8892a6] font-mono hover:text-[#00d4ff] ml-2">{pair.pool_address.slice(0,8)}...</a>
                   </div>
-                  {/* Metrics */}
-                  <div className="grid grid-cols-3 gap-6 flex-shrink-0">
-                    <div className="text-right">
-                      <div className="text-xs text-[#8892a6] font-mono">Volume</div>
-                      <div className="text-base font-mono font-bold text-[#00d4ff] tabular-nums">{fmtUSD(pair.volume_24h)}</div>
+                  <div className="flex items-center gap-6 flex-shrink-0">
+                    <div className="text-right hidden sm:block">
+                      <div className="text-[10px] text-[#8892a6] font-mono">Volume</div>
+                      <div className="text-sm font-mono font-bold text-[#00d4ff] tabular-nums">{fmtUSD(pair.volume_24h)}</div>
+                    </div>
+                    <div className="text-right hidden md:block">
+                      <div className="text-[10px] text-[#8892a6] font-mono">TVL</div>
+                      <div className="text-sm font-mono font-bold text-[#00ff88] tabular-nums">{fmtUSD(pair.tvl)}</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs text-[#8892a6] font-mono">TVL</div>
-                      <div className="text-base font-mono font-bold text-[#00ff88] tabular-nums">{fmtUSD(pair.tvl)}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs text-[#8892a6] font-mono">Txs</div>
-                      <div className="text-base font-mono font-bold text-[#ffa502] tabular-nums">{pair.tx_count.toLocaleString()}</div>
+                      <div className="text-[10px] text-[#8892a6] font-mono">Txs</div>
+                      <div className="text-sm font-mono font-bold text-[#ffa502] tabular-nums">{pair.tx_count.toLocaleString()}</div>
                     </div>
                   </div>
                 </div>

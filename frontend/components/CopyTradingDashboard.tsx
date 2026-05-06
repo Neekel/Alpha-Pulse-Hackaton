@@ -60,55 +60,46 @@ export function CopyTradingDashboard() {
         </div>
       </div>
 
-      <div className="space-y-3 mb-5">
+      <div className="space-y-2 mb-5">
         {traders.map((t, idx) => (
           <motion.div key={t.address} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.05 }} onClick={() => handleClick(t.address)}
-            className={`pro-card-hover p-5 cursor-pointer ${selected === t.address ? "border border-[#00d4ff]/40" : ""}`}>
-            <div className="flex items-center gap-4">
+            transition={{ delay: idx * 0.04 }} onClick={() => handleClick(t.address)}
+            className={`pro-card-hover px-4 py-3 cursor-pointer ${selected === t.address ? "border border-[#00d4ff]/40" : ""}`}>
+            <div className="flex items-center gap-3">
               {/* Rank */}
-              <div className="w-14 text-center flex-shrink-0">
-                {t.rank <= 3 ? (
-                  <div className="text-3xl">{["🥇","🥈","🥉"][t.rank-1]}</div>
-                ) : (
-                  <div className="text-3xl font-mono font-bold text-[#8892a6] tabular-nums">#{t.rank}</div>
-                )}
+              <div className="w-10 text-center flex-shrink-0">
+                {t.rank <= 3
+                  ? <span className="text-xl">{["🥇","🥈","🥉"][t.rank-1]}</span>
+                  : <span className="text-base font-mono font-bold text-[#8892a6]">#{t.rank}</span>}
               </div>
-
-              {/* Address + strategy + stats */}
+              {/* Address + strategy */}
               <div className="flex-1 min-w-0">
-                <code className="text-sm font-mono text-[#00d4ff] block mb-1">
-                  {t.address.slice(0, 6)}...{t.address.slice(-4)}
-                </code>
-                <span className={`text-sm font-mono font-bold ${stratColor(t.strategy)}`}>{t.strategy}</span>
-                <div className="flex items-center gap-5 mt-2">
-                  {[
-                    { label: "Trades", value: t.trades },
-                    { label: "Volume", value: `$${(t.total_volume / 1e6).toFixed(1)}M` },
-                    { label: "Followers", value: t.followers },
-                  ].map(item => (
-                    <div key={item.label}>
-                      <div className="text-xs text-[#8892a6] font-mono uppercase">{item.label}</div>
-                      <div className="text-sm font-mono text-white tabular-nums">{item.value}</div>
-                    </div>
-                  ))}
+                <div className="flex items-center gap-2">
+                  <code className="text-sm font-mono text-[#00d4ff]">{t.address.slice(0,6)}...{t.address.slice(-4)}</code>
+                  <span className={`text-xs font-mono font-bold ${stratColor(t.strategy)}`}>{t.strategy}</span>
+                </div>
+                <div className="flex items-center gap-4 mt-0.5 text-xs font-mono text-[#8892a6]">
+                  <span>{t.trades} trades</span>
+                  <span>${(t.total_volume/1e6).toFixed(1)}M vol</span>
+                  <span>{t.followers} followers</span>
                 </div>
               </div>
-
-              {/* Profit + win rate */}
-              <div className="flex-shrink-0 text-right">
-                <div className="text-2xl font-mono font-bold tabular-nums text-[#00ff88]">${(t.profit / 1000).toFixed(1)}K</div>
-                <div className="text-sm font-mono text-[#00ff88] tabular-nums mb-2">+{t.profit_pct.toFixed(1)}%</div>
-                <div className="flex items-center gap-2 justify-end">
-                  <div className="w-20 h-1.5 bg-[#1e2a47] rounded-full overflow-hidden">
+              {/* Profit */}
+              <div className="text-right flex-shrink-0">
+                <div className="text-lg font-mono font-bold tabular-nums text-[#00ff88]">${(t.profit/1000).toFixed(1)}K</div>
+                <div className="text-xs font-mono text-[#00ff88]">+{t.profit_pct.toFixed(1)}%</div>
+              </div>
+              {/* Win rate */}
+              <div className="flex-shrink-0 hidden sm:block w-28">
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1 h-1.5 bg-[#1e2a47] rounded-full overflow-hidden">
                     <div className="h-full bg-[#00ff88]" style={{ width: `${t.win_rate}%` }} />
                   </div>
-                  <span className="text-sm font-mono text-[#00ff88] tabular-nums">{t.win_rate.toFixed(0)}%</span>
+                  <span className="text-xs font-mono text-[#00ff88] tabular-nums w-8">{t.win_rate.toFixed(0)}%</span>
                 </div>
-                <div className="text-xs text-[#8892a6] font-mono uppercase mt-1">Win Rate</div>
+                <div className="text-[10px] text-[#8892a6] font-mono mt-0.5">Win Rate</div>
               </div>
-
-              <button className="pro-btn text-sm py-2 px-4 flex-shrink-0">View</button>
+              <button className="pro-btn text-xs py-1.5 px-3 flex-shrink-0">View</button>
             </div>
           </motion.div>
         ))}

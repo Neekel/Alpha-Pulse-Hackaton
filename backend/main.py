@@ -738,3 +738,229 @@ async def pulse_addresses(blocks: int = 20):
     except Exception as e:
         logger.error(f"Active addresses error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ─── AI CHAT ──────────────────────────────────────────────────────────────────
+
+@app.post("/api/ai/chat")
+async def ai_chat(body: dict):
+    """AI Chat — answers questions about Mantle market with real context"""
+    from datetime import datetime
+    try:
+        user_message = body.get("message", "").strip()
+        if not user_message:
+            raise HTTPException(status_code=400, detail="Message required")
+
+        # Gather real context
+        try:
+            stats_resp = supabase.table('anomalies').select('type,amount,confidence').order('timestamp', desc=True).limit(10).execute()
+            recent = stats_resp.data or []
+        except Exception:
+            recent = []
+
+        gas_price = monitor.get_gas_price() if monitor else 0
+        gas_gwei = round(gas_price / 1e9, 4) if gas_price else 0
+        block = monitor.get_block_number() if monitor else 0
+
+        system_prompt = f"""You are AlphaPulse AI — an expert on-chain analyst for Mantle Network.
+Current context:
+- Block: {block}
+- Gas: {gas_gwei} Gwei
+- Recent anomalies: {len(recent)} detected
+- Types: {[a.get('type') for a in recent[:5]]}
+
+Answer concisely in 2-4 sentences. Be specific, use numbers. Focus on actionable insights.
+If asked about price predictions, use the anomaly data as signals.
+Always mention Mantle Network context."""
+
+        groq_client = Groq(api_key=settings.groq_api_key)
+
+        def _call():
+            return groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_message}
+                ],
+                temperature=0.5,
+                max_tokens=300,
+            ).choices[0].message.content
+
+        response = await asyncio.to_thread(_call)
+        return {"response": response, "timestamp": datetime.utcnow().isoformat()}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"AI chat error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ─── AI DAILY BRIEFING ────────────────────────────────────────────────────────
+
+@app.get("/api/ai/daily-briefing")
+async def ai_daily_briefing():
+    """AI Daily Briefing — generated once per day with real market context"""
+    from datetime import datetime
+    try:
+        # Gather context
+        try:
+            anomalies_resp = supabase.table('anomalies').select('*').order('timestamp', desc=True).limit(50).execute()
+            anomalies = anomalies_resp.data or []
+        except Exception:
+            anomalies = []
+
+        gas_price = monitor.get_gas_price() if monitor else 0
+        gas_gwei = round(gas_price / 1e9, 4) if gas_price else 0
+        block = monitor.get_block_number() if monitor else 0
+
+        whale_count = len([a for a in anomalies if a.get('type') == 'WHALE_BUY'])
+        exit_count = len([a for a in anomalies if a.get('type') == 'LIQUIDITY_EXIT'])
+        cluster_count = len([a for a in anomalies if a.get('type') == 'SMART_CLUSTER'])
+        total_volume = sum(a.get('amount', 0) for a in anomalies)
+
+        prompt = f"""You are AlphaPulse AI. Generate a professional daily market briefing for Mantle Network.
+
+Data for today:
+- Current block: {block}
+- Gas price: {gas_gwei} Gwei
+- Whale buys detected: {whale_count}
+- Liquidity exits: {exit_count}
+- Smart clusters: {cluster_count}
+- Total anomaly volume: ${total_volume:,.0f}
+- Date: {datetime.utcnow().strftime('%B %d, %Y')}
+
+Write a briefing with these sections (use these exact headers):
+**MARKET OVERVIEW** — 2 sentences on overall market state
+**KEY SIGNALS** — 3 bullet points with specific numbers
+**RISK ASSESSMENT** — 1 sentence on current risk level
+**TODAY'S OUTLOOK** — 1 actionable recommendation
+
+Be specific, professional, Bloomberg-style. No fluff."""
+
+        groq_client = Groq(api_key=settings.groq_api_key)
+
+        def _call():
+            return groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+                max_tokens=500,
+            ).choices[0].message.content
+
+        briefing = await asyncio.to_thread(_call)
+        return {
+            "briefing": briefing,
+            "date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "generated_at": datetime.utcnow().isoformat(),
+            "stats": {
+                "whale_count": whale_count,
+                "exit_count": exit_count,
+                "cluster_count": cluster_count,
+                "total_volume": total_volume,
+                "gas_gwei": gas_gwei,
+                "block": block,
+            }
+        }
+    except Exception as e:
+        logger.error(f"Daily briefing error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ─── AI ANALYZER (Wallet + Token) ─────────────────────────────────────────────
+
+@app.get("/api/ai/analyze/{address}")
+async def ai_analyze_address(address: str):
+    """Analyze wallet OR token — auto-detects based on bytecode"""
+    from datetime import datetime
+    try:
+        web3 = Web3(Web3.HTTPProvider(settings.mantle_rpc_url))
+
+        # Detect: wallet or contract?
+        try:
+            code = web3.eth.get_code(Web3.to_checksum_address(address))
+            is_contract = len(code) > 2  # '0x' = empty
+        except Exception:
+            is_contract = False
+
+        groq_client = Groq(api_key=settings.groq_api_key)
+
+        if is_contract:
+            # Token analysis
+            from token_scanner import ERC20_ABI, _safety_score, _risk_label, _risk_color, HONEYPOT_KEYWORDS
+            token_info = {"name": "Unknown", "symbol": "???", "is_contract": True}
+            try:
+                contract = web3.eth.contract(address=Web3.to_checksum_address(address), abi=ERC20_ABI)
+                token_info["name"] = contract.functions.name().call()
+                token_info["symbol"] = contract.functions.symbol().call()
+                token_info["decimals"] = contract.functions.decimals().call()
+                supply = contract.functions.totalSupply().call()
+                token_info["total_supply"] = supply / (10 ** token_info["decimals"])
+            except Exception:
+                pass
+
+            prompt = f"""You are a DeFi security expert. Analyze this token on Mantle Network:
+Address: {address}
+Name: {token_info.get('name')}
+Symbol: {token_info.get('symbol')}
+Total Supply: {token_info.get('total_supply', 'Unknown')}
+
+Provide:
+1. Token type assessment (utility/meme/DeFi/scam risk)
+2. Key risks (2-3 points)
+3. Safety verdict: SAFE / CAUTION / DANGER
+4. One-line recommendation
+
+Be concise, 4-5 sentences total."""
+
+            analysis_type = "token"
+        else:
+            # Wallet analysis — get recent transactions
+            try:
+                anomalies_resp = supabase.table('anomalies').select('*').eq('wallet', address).order('timestamp', desc=True).limit(20).execute()
+                wallet_anomalies = anomalies_resp.data or []
+            except Exception:
+                wallet_anomalies = []
+
+            types = [a.get('type') for a in wallet_anomalies]
+            total_vol = sum(a.get('amount', 0) for a in wallet_anomalies)
+            avg_conf = sum(a.get('confidence', 0) for a in wallet_anomalies) / len(wallet_anomalies) if wallet_anomalies else 0
+
+            prompt = f"""You are a blockchain analyst. Analyze this wallet on Mantle Network:
+Address: {address}
+Detected anomalies: {len(wallet_anomalies)}
+Activity types: {types[:10]}
+Total volume: ${total_vol:,.0f}
+Average confidence: {avg_conf:.2f}
+
+Provide:
+1. Wallet type (whale/trader/bot/retail)
+2. Trading strategy assessment
+3. Risk profile (LOW/MEDIUM/HIGH)
+4. Should users copy this wallet? Why?
+
+Be concise, 4-5 sentences total."""
+
+            analysis_type = "wallet"
+
+        def _call():
+            return groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+                max_tokens=400,
+            ).choices[0].message.content
+
+        analysis = await asyncio.to_thread(_call)
+
+        return {
+            "address": address,
+            "type": analysis_type,
+            "analysis": analysis,
+            "is_contract": is_contract,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+
+    except Exception as e:
+        logger.error(f"AI analyze error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
