@@ -126,35 +126,41 @@ export function DEXAnalytics() {
           <div className="text-[#00d4ff] font-mono">Loading DEX data...</div>
         </div>
       ) : tab === "pairs" ? (
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2">
           {(summary?.top_pairs || []).length === 0 ? (
-            <div className="text-center py-8 text-[#8892a6] font-mono">No DEX data available</div>
+            <div className="col-span-full text-center py-8 text-[#8892a6] font-mono">No DEX data available</div>
           ) : (
             (summary?.top_pairs || []).map((pair: DEXPair, i: number) => {
               const badge = dexBadgeColor(pair.dex);
               return (
-                <div key={i} className="pro-card-hover px-4 py-3 flex items-center gap-3">
-                  <div className="text-base font-mono font-bold text-[#1e2a47] w-6 flex-shrink-0">{i+1}</div>
-                  <div className={`px-2 py-0.5 rounded-sm border text-xs font-mono font-bold flex-shrink-0 ${badge.bg} ${badge.text} ${badge.border}`}>
-                    {pair.dex.split(" ")[0]}
+                <div key={i} className="pro-card p-4 hover:border-[#00d4ff]/30 transition-colors">
+                  {/* DEX badge + rank */}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-mono font-bold text-[#8892a6]">#{i+1}</span>
+                    <span className={`text-xs font-mono font-bold px-1.5 py-0.5 rounded-sm border ${badge.bg} ${badge.text} ${badge.border}`}>
+                      {pair.dex.split(" ")[0]}
+                    </span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-base font-mono font-bold text-white">{pair.pair}</span>
-                    <a href={`https://mantlescan.xyz/address/${pair.pool_address}`} target="_blank" rel="noopener noreferrer"
-                      className="text-xs text-[#8892a6] font-mono hover:text-[#00d4ff] ml-2">{pair.pool_address.slice(0,8)}...</a>
+                  {/* Pair name — big */}
+                  <div className="text-base font-mono font-bold text-white mb-1">{pair.pair}</div>
+                  <a href={`https://mantlescan.xyz/address/${pair.pool_address}`} target="_blank" rel="noopener noreferrer"
+                    className="text-xs font-mono text-[#8892a6] hover:text-[#00d4ff] block mb-3">
+                    {pair.pool_address.slice(0,8)}...
+                  </a>
+                  {/* Volume — big number */}
+                  <div className="text-2xl font-mono font-bold tabular-nums text-[#00d4ff] mb-0.5">
+                    ${fmtUSD(pair.volume_24h)}
                   </div>
-                  <div className="flex items-center gap-6 flex-shrink-0">
-                    <div className="text-right hidden sm:block">
-                      <div className="text-[10px] text-[#8892a6] font-mono">Volume</div>
-                      <div className="text-sm font-mono font-bold text-[#00d4ff] tabular-nums">{fmtUSD(pair.volume_24h)}</div>
-                    </div>
-                    <div className="text-right hidden md:block">
-                      <div className="text-[10px] text-[#8892a6] font-mono">TVL</div>
-                      <div className="text-sm font-mono font-bold text-[#00ff88] tabular-nums">{fmtUSD(pair.tvl)}</div>
+                  <div className="text-xs font-mono text-[#8892a6] mb-3">24h volume</div>
+                  {/* TVL + Txs */}
+                  <div className="flex items-center justify-between text-xs font-mono">
+                    <div>
+                      <div className="text-[#8892a6]">TVL</div>
+                      <div className="text-[#00ff88] font-bold">${fmtUSD(pair.tvl)}</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-[10px] text-[#8892a6] font-mono">Txs</div>
-                      <div className="text-sm font-mono font-bold text-[#ffa502] tabular-nums">{pair.tx_count.toLocaleString()}</div>
+                      <div className="text-[#8892a6]">Txs</div>
+                      <div className="text-[#ffa502] font-bold">{pair.tx_count.toLocaleString()}</div>
                     </div>
                   </div>
                 </div>

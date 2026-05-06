@@ -103,59 +103,40 @@ export function CopyTradingDashboard() {
         </div>
       </div>
 
-      {/* Traders list */}
-      <div className="space-y-1.5 mb-4">
+      {/* Traders — Executive Dashboard style cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 mb-4">
         {traders.map((t, idx) => (
-          <motion.div key={t.address} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: idx * 0.03 }} onClick={() => handleClick(t.address)}
-            className={`px-4 py-2.5 cursor-pointer rounded-sm border transition-colors ${
-              selected === t.address
-                ? "bg-[#00d4ff]/10 border-[#00d4ff]/40"
-                : "bg-[#141b2d] border-[#1e2a47] hover:border-[#2a3f5f]"
-            }`}>
-            <div className="flex items-center gap-3">
-              {/* Rank */}
-              <div className="w-8 text-center flex-shrink-0">
-                {t.rank <= 3
-                  ? <span className="text-base">{["🥇","🥈","🥉"][t.rank-1]}</span>
-                  : <span className="text-sm font-mono font-bold text-[#8892a6]">#{t.rank}</span>}
-              </div>
-
-              {/* Address */}
-              <code className="text-sm font-mono text-[#00d4ff] flex-shrink-0 hidden sm:block">
-                {t.address.slice(0,6)}...{t.address.slice(-4)}
-              </code>
-
-              {/* Strategy badge */}
-              <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-sm border flex-shrink-0 ${stratBg(t.strategy)} ${stratColor(t.strategy)}`}>
-                {t.strategy}
+          <motion.div key={t.address} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.04 }} onClick={() => handleClick(t.address)}
+            className={`pro-card p-4 cursor-pointer transition-all hover:border-[#00d4ff]/40 ${
+              selected === t.address ? "border border-[#00d4ff]/50" : ""
+            }`}
+            style={selected === t.address ? { background: "rgba(0,212,255,0.06)" } : {}}>
+            {/* Rank + address */}
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-lg">
+                {t.rank <= 3 ? ["🥇","🥈","🥉"][t.rank-1] : <span className="text-sm font-mono text-[#8892a6]">#{t.rank}</span>}
               </span>
-
-              {/* Stats inline */}
-              <div className="flex-1 flex items-center gap-4 min-w-0 text-xs font-mono text-[#8892a6]">
-                <span className="hidden md:inline">{t.trades} trades</span>
-                <span className="hidden lg:inline">${(t.total_volume/1e6).toFixed(1)}M</span>
-                <span className="hidden md:inline">{t.followers} followers</span>
-              </div>
-
-              {/* Win rate bar */}
-              <div className="flex items-center gap-1.5 flex-shrink-0 hidden sm:flex w-24">
-                <div className="flex-1 h-1 bg-[#1e2a47] rounded-full overflow-hidden">
-                  <div className="h-full bg-[#00ff88]" style={{ width: `${t.win_rate}%` }} />
-                </div>
-                <span className="text-xs font-mono text-[#00ff88] tabular-nums">{t.win_rate.toFixed(0)}%</span>
-              </div>
-
-              {/* Profit */}
-              <div className="text-right flex-shrink-0">
-                <span className="text-base font-mono font-bold tabular-nums text-[#00ff88]">${(t.profit/1000).toFixed(1)}K</span>
-                <span className="text-xs font-mono text-[#00ff88] ml-1">+{t.profit_pct.toFixed(0)}%</span>
-              </div>
-
-              <button className="pro-btn text-xs py-1 px-2.5 flex-shrink-0">
-                {selected === t.address ? "▲" : "▼"}
-              </button>
+              <span className={`text-xs font-mono font-bold px-1.5 py-0.5 rounded-sm border ${stratBg(t.strategy)} ${stratColor(t.strategy)}`}>
+                {t.strategy.split(" ")[0]}
+              </span>
             </div>
+            <code className="text-xs font-mono text-[#00d4ff] block mb-3">
+              {t.address.slice(0,6)}...{t.address.slice(-4)}
+            </code>
+            {/* Profit — big number */}
+            <div className="text-2xl font-mono font-bold tabular-nums text-[#00ff88] mb-0.5">
+              ${(t.profit/1000).toFixed(1)}K
+            </div>
+            <div className="text-xs font-mono text-[#00ff88] mb-3">↗ +{t.profit_pct.toFixed(0)}%</div>
+            {/* Win rate bar */}
+            <div className="flex items-center gap-1.5 mb-2">
+              <div className="flex-1 h-1.5 bg-[#1e2a47] rounded-full overflow-hidden">
+                <div className="h-full bg-[#00ff88]" style={{ width: `${t.win_rate}%` }} />
+              </div>
+              <span className="text-xs font-mono text-[#00ff88] tabular-nums">{t.win_rate.toFixed(0)}%</span>
+            </div>
+            <div className="text-xs text-[#8892a6] font-mono">{t.trades} trades · {t.followers} followers</div>
           </motion.div>
         ))}
       </div>

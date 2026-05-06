@@ -131,35 +131,48 @@ export function TokenScanner() {
           <div className="text-[#8892a6] font-mono">No new tokens found in recent blocks</div>
         </div>
       ) : (
-        <div className="space-y-2">
-          {filtered.map((token, i) => (
-            <div key={token.address} className="pro-card-hover px-4 py-3 flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#1e2a47] rounded-sm flex items-center justify-center flex-shrink-0">
-                <span className="text-xs font-mono font-bold text-white">{token.symbol.slice(0,4)}</span>
-              </div>
-              <div className="flex-1 min-w-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+          {filtered.map((token) => (
+            <div key={token.address} className="pro-card p-4 hover:border-[#00d4ff]/30 transition-colors">
+              {/* Symbol + verified */}
+              <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-mono font-bold text-white">{token.symbol}</span>
-                  <span className="text-xs text-[#8892a6] font-mono truncate hidden sm:inline">{token.name}</span>
-                  {token.is_verified && <span className="text-[10px] font-mono text-[#00ff88] px-1 py-0.5 bg-[#00ff88]/10 border border-[#00ff88]/30 rounded-sm">✓</span>}
+                  <div className="w-8 h-8 bg-[#1e2a47] rounded-sm flex items-center justify-center">
+                    <span className="text-xs font-mono font-bold text-white">{token.symbol.slice(0,3)}</span>
+                  </div>
+                  <div>
+                    <div className="text-base font-mono font-bold text-white">{token.symbol}</div>
+                    <div className="text-xs text-[#8892a6] font-mono truncate max-w-[80px]">{token.name}</div>
+                  </div>
                 </div>
-                <a href={`https://mantlescan.xyz/address/${token.address}`} target="_blank" rel="noopener noreferrer"
-                  className="text-xs font-mono text-[#00d4ff] hover:text-[#00b8e6]">
-                  {token.address.slice(0,8)}...{token.address.slice(-4)}
-                </a>
+                {token.is_verified && (
+                  <span className="text-xs font-mono text-[#00ff88] px-1 py-0.5 bg-[#00ff88]/10 border border-[#00ff88]/30 rounded-sm">✓</span>
+                )}
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <div className="w-16 h-1.5 bg-[#1e2a47] rounded-full overflow-hidden hidden sm:block">
-                  <div className="h-full rounded-full" style={{ width: `${token.safety_score}%`, backgroundColor: token.risk_color }} />
-                </div>
-                <span className="text-sm font-mono font-bold tabular-nums" style={{ color: token.risk_color }}>{token.safety_score}</span>
+
+              {/* Address */}
+              <a href={`https://mantlescan.xyz/address/${token.address}`} target="_blank" rel="noopener noreferrer"
+                className="text-xs font-mono text-[#00d4ff] hover:text-[#00b8e6] block mb-3">
+                {token.address.slice(0,8)}...{token.address.slice(-4)}
+              </a>
+
+              {/* Safety score — big */}
+              <div className="text-2xl font-mono font-bold tabular-nums mb-1" style={{ color: token.risk_color }}>
+                {token.safety_score}
               </div>
-              <span className="text-xs font-mono font-bold px-2 py-1 rounded-sm flex-shrink-0"
-                style={{ color: token.risk_color, backgroundColor: `${token.risk_color}20`, border: `1px solid ${token.risk_color}40` }}>
-                {token.risk_label}
-              </span>
-              <div className="text-xs text-[#8892a6] font-mono flex-shrink-0 hidden md:block">
-                {formatDistanceToNow(new Date(token.deployed_at), { addSuffix: true })}
+              <div className="h-1.5 bg-[#1e2a47] rounded-full overflow-hidden mb-2">
+                <div className="h-full rounded-full" style={{ width: `${token.safety_score}%`, backgroundColor: token.risk_color }} />
+              </div>
+
+              {/* Risk badge + age */}
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-sm"
+                  style={{ color: token.risk_color, background: `${token.risk_color}20`, border: `1px solid ${token.risk_color}40` }}>
+                  {token.risk_label}
+                </span>
+                <span className="text-xs text-[#8892a6] font-mono">
+                  {formatDistanceToNow(new Date(token.deployed_at), { addSuffix: true })}
+                </span>
               </div>
             </div>
           ))}

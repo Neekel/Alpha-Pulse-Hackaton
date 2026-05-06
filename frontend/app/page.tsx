@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { AIPredictionsPro } from "@/components/AIPredictionsPro";
 import { AlertFeedCompact } from "@/components/AlertFeedCompact";
 import { PredictionHistory } from "@/components/PredictionHistory";
-import { StatsPanel } from "@/components/StatsPanel";
-import { ContractInfo } from "@/components/ContractInfo";
 import { NetworkStatus } from "@/components/NetworkStatus";
 import { AIAgentDashboard } from "@/components/AIAgentDashboard";
 import { CopyTradingDashboard } from "@/components/CopyTradingDashboard";
@@ -21,6 +19,7 @@ export default function Home() {
   const [stats, setStats] = useState<any>(null);
   const [anomalies, setAnomalies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [menuOpen, setMenuOpen] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -122,13 +121,10 @@ export default function Home() {
 
         {stats && <StatsPanel stats={stats} />}
 
-        {/* Ticker bar: Mantle stats + Contracts in one line each */}
         <MantleStats />
-        <ContractInfo />
 
         {/* AI Multi-Agent System */}
         <div className="mb-3"><AIAgentDashboard /></div>
-
         {/* AI Daily Briefing + Chat + Analyzer */}
         <div className="mb-3"><AIDailyBriefing /></div>
         <div className="mb-3"><AIChat /></div>
