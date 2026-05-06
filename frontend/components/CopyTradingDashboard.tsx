@@ -79,19 +79,27 @@ export function CopyTradingDashboard() {
         </div>
       </div>
 
-      {/* Stats — single row like Executive Dashboard */}
-      <div className="grid grid-cols-3 gap-2 mb-4 p-3 bg-[#1e2a47]/20 rounded-sm">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-[#8892a6] font-mono uppercase">Top Profit</span>
-          <span className="text-base font-mono font-bold text-[#00ff88] tabular-nums">${(topProfit/1000).toFixed(1)}K</span>
+      {/* Stats — 4 horizontal cards like Executive Dashboard */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+        <div className="pro-card p-4 border-[#00ff88]/20" style={{background:"linear-gradient(135deg,rgba(0,255,136,0.06),transparent)"}}>
+          <div className="text-xs text-[#8892a6] font-mono uppercase mb-1">Top Profit</div>
+          <div className="text-2xl font-mono font-bold tabular-nums text-[#00ff88]">${(topProfit/1000).toFixed(1)}K</div>
+          <div className="text-xs text-[#00ff88] font-mono mt-0.5">↗ #{traders[0]?.rank ?? 1} trader</div>
         </div>
-        <div className="flex items-center justify-between border-x border-[#1e2a47] px-3">
-          <span className="text-xs text-[#8892a6] font-mono uppercase">Avg Win Rate</span>
-          <span className="text-base font-mono font-bold text-[#00d4ff] tabular-nums">{avgWinRate.toFixed(0)}%</span>
+        <div className="pro-card p-4 border-[#00d4ff]/20" style={{background:"linear-gradient(135deg,rgba(0,212,255,0.06),transparent)"}}>
+          <div className="text-xs text-[#8892a6] font-mono uppercase mb-1">Avg Win Rate</div>
+          <div className="text-2xl font-mono font-bold tabular-nums text-[#00d4ff]">{avgWinRate.toFixed(0)}%</div>
+          <div className="text-xs text-[#00d4ff] font-mono mt-0.5">across {traders.length} traders</div>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-[#8892a6] font-mono uppercase">Total Volume</span>
-          <span className="text-base font-mono font-bold text-[#ffa502] tabular-nums">${(totalVolume/1e6).toFixed(1)}M</span>
+        <div className="pro-card p-4 border-[#ffa502]/20" style={{background:"linear-gradient(135deg,rgba(255,165,2,0.06),transparent)"}}>
+          <div className="text-xs text-[#8892a6] font-mono uppercase mb-1">Total Volume</div>
+          <div className="text-2xl font-mono font-bold tabular-nums text-[#ffa502]">${(totalVolume/1e6).toFixed(1)}M</div>
+          <div className="text-xs text-[#ffa502] font-mono mt-0.5">combined</div>
+        </div>
+        <div className="pro-card p-4 border-[#a855f7]/20" style={{background:"linear-gradient(135deg,rgba(168,85,247,0.06),transparent)"}}>
+          <div className="text-xs text-[#8892a6] font-mono uppercase mb-1">Strategies</div>
+          <div className="text-2xl font-mono font-bold tabular-nums text-[#a855f7]">{new Set(traders.map(t=>t.strategy)).size}</div>
+          <div className="text-xs text-[#a855f7] font-mono mt-0.5">unique types</div>
         </div>
       </div>
 

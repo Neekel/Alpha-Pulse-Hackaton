@@ -82,20 +82,30 @@ export function TokenScanner() {
         </div>
       </div>
 
-      {/* Stats — single row like Executive Dashboard */}
+      {/* Stats — 4 horizontal cards like Executive Dashboard */}
       {stats && (
-        <div className="grid grid-cols-3 gap-2 mb-4 p-3 bg-[#1e2a47]/20 rounded-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-[#8892a6] font-mono uppercase">New / hr</span>
-            <span className="text-base font-mono font-bold text-[#00d4ff] tabular-nums">{stats.new_tokens_1h}</span>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+          <div className="pro-card p-4 border-[#00d4ff]/20" style={{background:"linear-gradient(135deg,rgba(0,212,255,0.06),transparent)"}}>
+            <div className="text-xs text-[#8892a6] font-mono uppercase mb-1">New / hr</div>
+            <div className="text-2xl font-mono font-bold tabular-nums text-[#00d4ff]">{stats.new_tokens_1h}</div>
+            <div className="text-xs text-[#00d4ff] font-mono mt-0.5">deployments</div>
           </div>
-          <div className="flex items-center justify-between border-x border-[#1e2a47] px-3">
-            <span className="text-xs text-[#8892a6] font-mono uppercase">Est. 24h</span>
-            <span className="text-base font-mono font-bold text-[#ffa502] tabular-nums">{stats.new_tokens_24h}</span>
+          <div className="pro-card p-4 border-[#ffa502]/20" style={{background:"linear-gradient(135deg,rgba(255,165,2,0.06),transparent)"}}>
+            <div className="text-xs text-[#8892a6] font-mono uppercase mb-1">Est. 24h</div>
+            <div className="text-2xl font-mono font-bold tabular-nums text-[#ffa502]">{stats.new_tokens_24h}</div>
+            <div className="text-xs text-[#ffa502] font-mono mt-0.5">projected</div>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-[#8892a6] font-mono uppercase">Scanned</span>
-            <span className="text-base font-mono font-bold text-[#00ff88] tabular-nums">{tokens.length}</span>
+          <div className="pro-card p-4 border-[#00ff88]/20" style={{background:"linear-gradient(135deg,rgba(0,255,136,0.06),transparent)"}}>
+            <div className="text-xs text-[#8892a6] font-mono uppercase mb-1">Scanned</div>
+            <div className="text-2xl font-mono font-bold tabular-nums text-[#00ff88]">{tokens.length}</div>
+            <div className="text-xs text-[#00ff88] font-mono mt-0.5">tokens found</div>
+          </div>
+          <div className="pro-card p-4 border-[#a855f7]/20" style={{background:"linear-gradient(135deg,rgba(168,85,247,0.06),transparent)"}}>
+            <div className="text-xs text-[#8892a6] font-mono uppercase mb-1">Safe Tokens</div>
+            <div className="text-2xl font-mono font-bold tabular-nums text-[#a855f7]">
+              {tokens.filter(t => t.safety_score >= 70).length}
+            </div>
+            <div className="text-xs text-[#a855f7] font-mono mt-0.5">score ≥ 70</div>
           </div>
         </div>
       )}

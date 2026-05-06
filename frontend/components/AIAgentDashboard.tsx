@@ -273,11 +273,10 @@ export function AIAgentDashboard() {
         )}
       </AnimatePresence>
 
-      {/* Empty state */}
-      {!rec && !analyzing && (
-        <div className="text-center py-6 border border-dashed border-[#1e2a47] rounded-sm">
-          <div className="text-[#8892a6] font-mono mb-2">No analysis yet</div>
-          <div className="text-sm text-[#8892a6]/60 font-mono">Click "Run Analysis" to start all 4 agents</div>
+      {/* Empty state — just show agents waiting, no text */}
+      {!rec && !analyzing && agents.length > 0 && (
+        <div className="mt-2 p-3 border border-dashed border-[#1e2a47] rounded-sm text-center">
+          <div className="text-xs text-[#8892a6]/50 font-mono">↑ Click Run Analysis to generate trading signal</div>
         </div>
       )}
     </div>
