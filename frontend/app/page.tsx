@@ -32,13 +32,8 @@ export default function Home() {
 
   const fetchData = async () => {
     try {
-      const [statsRes, anomaliesRes] = await Promise.all([
-        fetch(`${API_URL}/api/stats`),
-        fetch(`${API_URL}/api/anomalies?limit=20`),
-      ]);
-      const statsData = await statsRes.json();
+      const anomaliesRes = await fetch(`${API_URL}/api/anomalies?limit=20`);
       const anomaliesData = await anomaliesRes.json();
-      setStats(statsData);
       setAnomalies(anomaliesData.anomalies || []);
       setLoading(false);
     } catch (error) {
@@ -118,8 +113,6 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="px-3 md:px-6 py-3 md:py-4 max-w-screen-2xl mx-auto">
-
-        {stats && <StatsPanel stats={stats} />}
 
         <MantleStats />
 
